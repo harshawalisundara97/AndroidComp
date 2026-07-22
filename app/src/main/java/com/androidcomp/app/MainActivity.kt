@@ -3,10 +3,14 @@ package com.androidcomp.app
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
+import com.androidcomp.app.core.navigation.AndroidCompNavHost
+import com.androidcomp.app.core.navigation.BottomNavBar
 import com.androidcomp.app.core.ui.theme.AndroidCompTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -16,8 +20,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             AndroidCompTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    Text("Android Comp")
+                val navController = rememberNavController()
+                Scaffold(
+                    bottomBar = { BottomNavBar(navController) }
+                ) { padding ->
+                    Modifier.padding(padding)
+                    AndroidCompNavHost(navController)
                 }
             }
         }

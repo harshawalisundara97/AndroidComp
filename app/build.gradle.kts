@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
 
     implementation(libs.navigation.compose)
+    implementation(libs.compose.material.icons.extended)
     implementation(libs.coil.compose)
 
     testImplementation(libs.junit)
