@@ -17,8 +17,8 @@ import com.androidcomp.app.features.home.HomeScreen
 import com.androidcomp.app.features.settings.SettingsScreen
 
 @Composable
-fun AndroidCompNavHost(navController: NavHostController) {
-    NavHost(navController = navController, startDestination = Route.Home.path) {
+fun AndroidCompNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
+    NavHost(navController = navController, startDestination = Route.Home.path, modifier = modifier) {
         composable(Route.Home.path) {
             HomeScreen(onComponentClick = { id ->
                 navController.navigate(Route.ComponentDetail.buildRoute(id))

@@ -24,8 +24,7 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     bottomBar = { BottomNavBar(navController) }
                 ) { padding ->
-                    Modifier.padding(padding)
-                    AndroidCompNavHost(navController)
+                    AndroidCompNavHost(navController, modifier = Modifier.padding(padding))
                 }
             }
         }
