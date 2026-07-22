@@ -12,6 +12,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.androidcomp.app.core.ui.AppTopBar
 
 @Composable
 fun CategoriesScreen(
@@ -20,7 +21,7 @@ fun CategoriesScreen(
 ) {
     val components by viewModel.buttonComponents.collectAsState()
 
-    Scaffold { padding ->
+    Scaffold(topBar = { AppTopBar("Categories") }) { padding ->
         LazyColumn(Modifier.padding(padding)) {
             items(components, key = { it.id }) { spec ->
                 ListItem(

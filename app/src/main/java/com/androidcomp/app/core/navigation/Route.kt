@@ -1,5 +1,8 @@
 package com.androidcomp.app.core.navigation
 
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+
 sealed class Route(val path: String) {
     data object Home : Route("home")
     data object Search : Route("search")
@@ -17,3 +20,21 @@ sealed class Route(val path: String) {
 }
 
 val bottomNavRoutes = listOf(Route.Home, Route.Search, Route.Categories, Route.Favorites, Route.Settings)
+
+/**
+ * Navigates to a bottom-nav destination using the standard tab-switch pattern
+ * (single back-stack entry per tab, state preserved across switches). Use this
+ * for ANY navigation to a bottom-nav route — including links from other screens
+ * (e.g. a "View all categories" button on Home) — not just BottomNavBar itself,
+ * so a forward push from elsewhere can't leave a duplicate entry that later
+ * confuses tab selection/back navigation.
+ */
+fun NavHostController.navigateToTab(route: Route) {
+    navigate(route.path) {
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        launchSingleTop = true
+        restoreState = true
+    }
+}

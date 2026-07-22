@@ -11,12 +11,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.androidcomp.app.core.ui.AppTopBar
 
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel = hiltViewModel()) {
     val darkMode by viewModel.darkModeEnabled.collectAsState()
 
-    Scaffold { padding ->
+    Scaffold(topBar = { AppTopBar("Settings") }) { padding ->
         Row(Modifier.padding(padding).padding(16.dp)) {
             Text("Dark mode")
             Switch(checked = darkMode, onCheckedChange = viewModel::setDarkMode)

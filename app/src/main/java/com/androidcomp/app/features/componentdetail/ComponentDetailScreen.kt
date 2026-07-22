@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.androidcomp.app.core.ui.AppTopBar
 import com.androidcomp.app.core.ui.BulletList
 import com.androidcomp.app.core.ui.CodeBlock
 import com.androidcomp.app.core.ui.PropertyTable
@@ -28,13 +29,14 @@ import com.androidcomp.app.features.buttons.preview.ButtonPreviewRegistry
 @Composable
 fun ComponentDetailScreen(
     onRelatedComponentClick: (String) -> Unit,
+    onBackClick: () -> Unit,
     detailViewModel: ComponentDetailViewModel = hiltViewModel(),
     playgroundViewModel: PlaygroundViewModel = hiltViewModel()
 ) {
     val spec by detailViewModel.spec.collectAsState()
     val playgroundState by playgroundViewModel.state.collectAsState()
 
-    Scaffold { padding ->
+    Scaffold(topBar = { AppTopBar(spec?.title ?: "Component", onBackClick = onBackClick) }) { padding ->
         val currentSpec = spec
         if (currentSpec == null) {
             Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
@@ -64,7 +66,6 @@ private fun ComponentDetailContent(
     onRelatedComponentClick: (String) -> Unit
 ) {
     Column {
-        Text(spec.title)
 
         // 1. Overview
         SectionHeader("Overview")

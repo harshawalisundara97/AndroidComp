@@ -11,3 +11,6 @@ local.properties
 build/
 /app/build
 *.hprof
+
+# Claude Code local tooling (settings, worktrees) — not shared repo state
+.claude/

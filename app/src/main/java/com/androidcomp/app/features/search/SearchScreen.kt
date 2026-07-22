@@ -16,6 +16,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.androidcomp.app.core.ui.AppTopBar
 
 @Composable
 fun SearchScreen(
@@ -25,7 +26,7 @@ fun SearchScreen(
     val query by viewModel.query.collectAsState()
     val results by viewModel.results.collectAsState()
 
-    Scaffold { padding ->
+    Scaffold(topBar = { AppTopBar("Search") }) { padding ->
         Column(Modifier.padding(padding).padding(16.dp)) {
             OutlinedTextField(
                 value = query,
