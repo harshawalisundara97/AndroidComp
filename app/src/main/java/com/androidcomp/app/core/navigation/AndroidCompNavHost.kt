@@ -15,6 +15,7 @@ import com.androidcomp.app.features.categories.CategoriesScreen
 import com.androidcomp.app.features.favorites.FavoritesScreen
 import com.androidcomp.app.features.home.HomeScreen
 import com.androidcomp.app.features.settings.SettingsScreen
+import com.androidcomp.app.features.search.SearchScreen
 
 @Composable
 fun AndroidCompNavHost(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -25,9 +26,9 @@ fun AndroidCompNavHost(navController: NavHostController, modifier: Modifier = Mo
             })
         }
         composable(Route.Search.path) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Search — wired in a later task")
-            }
+            SearchScreen(onComponentClick = { id ->
+                navController.navigate(Route.ComponentDetail.buildRoute(id))
+            })
         }
         composable(Route.Categories.path) {
             CategoriesScreen(onComponentClick = { id ->
