@@ -30,6 +30,9 @@ import com.androidcomp.app.features.text.preview.TextPreviewRegistry
 import com.androidcomp.app.features.selectioncontrols.playground.SelectionPlaygroundControls
 import com.androidcomp.app.features.selectioncontrols.playground.SelectionPlaygroundViewModel
 import com.androidcomp.app.features.selectioncontrols.preview.SelectionPreviewRegistry
+import com.androidcomp.app.features.progress.playground.ProgressPlaygroundControls
+import com.androidcomp.app.features.progress.playground.ProgressPlaygroundViewModel
+import com.androidcomp.app.features.progress.preview.ProgressPreviewRegistry
 
 @Composable
 fun ComponentDetailScreen(
@@ -38,7 +41,8 @@ fun ComponentDetailScreen(
     detailViewModel: ComponentDetailViewModel = hiltViewModel(),
     buttonPlaygroundViewModel: PlaygroundViewModel = hiltViewModel(),
     textPlaygroundViewModel: TextPlaygroundViewModel = hiltViewModel(),
-    selectionPlaygroundViewModel: SelectionPlaygroundViewModel = hiltViewModel()
+    selectionPlaygroundViewModel: SelectionPlaygroundViewModel = hiltViewModel(),
+    progressPlaygroundViewModel: ProgressPlaygroundViewModel = hiltViewModel()
 ) {
     val spec by detailViewModel.spec.collectAsState()
 
@@ -58,6 +62,7 @@ fun ComponentDetailScreen(
                     buttonPlaygroundViewModel,
                     textPlaygroundViewModel,
                     selectionPlaygroundViewModel,
+                    progressPlaygroundViewModel,
                     onRelatedComponentClick
                 )
             }
@@ -71,6 +76,7 @@ private fun ComponentDetailContent(
     buttonPlaygroundViewModel: PlaygroundViewModel,
     textPlaygroundViewModel: TextPlaygroundViewModel,
     selectionPlaygroundViewModel: SelectionPlaygroundViewModel,
+    progressPlaygroundViewModel: ProgressPlaygroundViewModel,
     onRelatedComponentClick: (String) -> Unit
 ) {
     Column {
@@ -123,6 +129,18 @@ private fun ComponentDetailContent(
                     state = playgroundState,
                     onCheckedChange = selectionPlaygroundViewModel::setChecked,
                     onEnabledChange = selectionPlaygroundViewModel::setEnabled
+                )
+            }
+            ProgressPreviewRegistry.previews.containsKey(spec.id) -> {
+                val playgroundState by progressPlaygroundViewModel.state.collectAsState()
+
+                SectionHeader("Live Preview")
+                ProgressPreviewRegistry.previews[spec.id]?.invoke(playgroundState)
+
+                SectionHeader("Interactive Playground")
+                ProgressPlaygroundControls(
+                    state = playgroundState,
+                    onProgressChange = progressPlaygroundViewModel::setProgress
                 )
             }
         }
