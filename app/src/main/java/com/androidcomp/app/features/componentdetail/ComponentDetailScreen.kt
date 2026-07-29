@@ -27,6 +27,9 @@ import com.androidcomp.app.features.buttons.preview.ButtonPreviewRegistry
 import com.androidcomp.app.features.text.playground.TextPlaygroundControls
 import com.androidcomp.app.features.text.playground.TextPlaygroundViewModel
 import com.androidcomp.app.features.text.preview.TextPreviewRegistry
+import com.androidcomp.app.features.selectioncontrols.playground.SelectionPlaygroundControls
+import com.androidcomp.app.features.selectioncontrols.playground.SelectionPlaygroundViewModel
+import com.androidcomp.app.features.selectioncontrols.preview.SelectionPreviewRegistry
 
 @Composable
 fun ComponentDetailScreen(
@@ -34,7 +37,8 @@ fun ComponentDetailScreen(
     onBackClick: () -> Unit,
     detailViewModel: ComponentDetailViewModel = hiltViewModel(),
     buttonPlaygroundViewModel: PlaygroundViewModel = hiltViewModel(),
-    textPlaygroundViewModel: TextPlaygroundViewModel = hiltViewModel()
+    textPlaygroundViewModel: TextPlaygroundViewModel = hiltViewModel(),
+    selectionPlaygroundViewModel: SelectionPlaygroundViewModel = hiltViewModel()
 ) {
     val spec by detailViewModel.spec.collectAsState()
 
@@ -53,6 +57,7 @@ fun ComponentDetailScreen(
                     currentSpec,
                     buttonPlaygroundViewModel,
                     textPlaygroundViewModel,
+                    selectionPlaygroundViewModel,
                     onRelatedComponentClick
                 )
             }
@@ -65,6 +70,7 @@ private fun ComponentDetailContent(
     spec: ComponentSpec,
     buttonPlaygroundViewModel: PlaygroundViewModel,
     textPlaygroundViewModel: TextPlaygroundViewModel,
+    selectionPlaygroundViewModel: SelectionPlaygroundViewModel,
     onRelatedComponentClick: (String) -> Unit
 ) {
     Column {
@@ -104,6 +110,19 @@ private fun ComponentDetailContent(
                     onTextChange = textPlaygroundViewModel::setText,
                     onBoldChange = textPlaygroundViewModel::setBold,
                     onItalicChange = textPlaygroundViewModel::setItalic
+                )
+            }
+            SelectionPreviewRegistry.previews.containsKey(spec.id) -> {
+                val playgroundState by selectionPlaygroundViewModel.state.collectAsState()
+
+                SectionHeader("Live Preview")
+                SelectionPreviewRegistry.previews[spec.id]?.invoke(playgroundState)
+
+                SectionHeader("Interactive Playground")
+                SelectionPlaygroundControls(
+                    state = playgroundState,
+                    onCheckedChange = selectionPlaygroundViewModel::setChecked,
+                    onEnabledChange = selectionPlaygroundViewModel::setEnabled
                 )
             }
         }
