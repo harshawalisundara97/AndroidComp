@@ -11,6 +11,7 @@ import com.androidcomp.app.features.categories.CategoriesScreen
 import com.androidcomp.app.features.componentdetail.ComponentDetailScreen
 import com.androidcomp.app.features.favorites.FavoritesScreen
 import com.androidcomp.app.features.home.HomeScreen
+import com.androidcomp.app.features.news.NewsDetailScreen
 import com.androidcomp.app.features.settings.SettingsScreen
 import com.androidcomp.app.features.settings.SettingsViewModel
 import com.androidcomp.app.features.search.SearchScreen
@@ -27,7 +28,8 @@ fun AndroidCompNavHost(
                 onComponentClick = { id ->
                     navController.navigate(Route.ComponentDetail.buildRoute(id))
                 },
-                onViewAllCategoriesClick = { navController.navigateToTab(Route.Categories) }
+                onViewAllCategoriesClick = { navController.navigateToTab(Route.Categories) },
+                onNewsClick = { newsId -> navController.navigate(Route.NewsDetail.buildRoute(newsId)) }
             )
         }
         composable(Route.Search.path) {
@@ -56,6 +58,13 @@ fun AndroidCompNavHost(
                 },
                 onBackClick = { navController.popBackStack() }
             )
+        }
+        composable(
+            route = Route.NewsDetail.ROUTE_PATTERN,
+            arguments = listOf(navArgument(Route.NewsDetail.ARG_NEWS_ID) { type = NavType.StringType })
+        ) { backStackEntry ->
+            val newsId = backStackEntry.arguments?.getString(Route.NewsDetail.ARG_NEWS_ID).orEmpty()
+            NewsDetailScreen(newsId = newsId, onBackClick = { navController.popBackStack() })
         }
     }
 }

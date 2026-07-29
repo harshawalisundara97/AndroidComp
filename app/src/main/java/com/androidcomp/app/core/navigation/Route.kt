@@ -17,6 +17,14 @@ sealed class Route(val path: String) {
             fun buildRoute(componentId: String) = "component_detail/$componentId"
         }
     }
+
+    data class NewsDetail(val newsId: String) : Route("news_detail") {
+        companion object {
+            const val ARG_NEWS_ID = "newsId"
+            const val ROUTE_PATTERN = "news_detail/{$ARG_NEWS_ID}"
+            fun buildRoute(newsId: String) = "news_detail/$newsId"
+        }
+    }
 }
 
 val bottomNavRoutes = listOf(Route.Home, Route.Search, Route.Categories, Route.Favorites, Route.Settings)

@@ -22,19 +22,21 @@ import com.androidcomp.app.core.ui.PropertyTable
 import com.androidcomp.app.core.ui.SectionHeader
 import com.androidcomp.app.domain.model.ComponentSpec
 import com.androidcomp.app.features.buttons.playground.PlaygroundControls
-import com.androidcomp.app.features.buttons.playground.PlaygroundState
 import com.androidcomp.app.features.buttons.playground.PlaygroundViewModel
 import com.androidcomp.app.features.buttons.preview.ButtonPreviewRegistry
+import com.androidcomp.app.features.text.playground.TextPlaygroundControls
+import com.androidcomp.app.features.text.playground.TextPlaygroundViewModel
+import com.androidcomp.app.features.text.preview.TextPreviewRegistry
 
 @Composable
 fun ComponentDetailScreen(
     onRelatedComponentClick: (String) -> Unit,
     onBackClick: () -> Unit,
     detailViewModel: ComponentDetailViewModel = hiltViewModel(),
-    playgroundViewModel: PlaygroundViewModel = hiltViewModel()
+    buttonPlaygroundViewModel: PlaygroundViewModel = hiltViewModel(),
+    textPlaygroundViewModel: TextPlaygroundViewModel = hiltViewModel()
 ) {
     val spec by detailViewModel.spec.collectAsState()
-    val playgroundState by playgroundViewModel.state.collectAsState()
 
     Scaffold(topBar = { AppTopBar(spec?.title ?: "Component", onBackClick = onBackClick) }) { padding ->
         val currentSpec = spec
@@ -49,8 +51,8 @@ fun ComponentDetailScreen(
             item {
                 ComponentDetailContent(
                     currentSpec,
-                    playgroundState,
-                    playgroundViewModel,
+                    buttonPlaygroundViewModel,
+                    textPlaygroundViewModel,
                     onRelatedComponentClick
                 )
             }
@@ -61,8 +63,8 @@ fun ComponentDetailScreen(
 @Composable
 private fun ComponentDetailContent(
     spec: ComponentSpec,
-    playgroundState: PlaygroundState,
-    playgroundViewModel: PlaygroundViewModel,
+    buttonPlaygroundViewModel: PlaygroundViewModel,
+    textPlaygroundViewModel: TextPlaygroundViewModel,
     onRelatedComponentClick: (String) -> Unit
 ) {
     Column {
@@ -71,17 +73,40 @@ private fun ComponentDetailContent(
         SectionHeader("Overview")
         Text(spec.overview)
 
-        // 2. Live Preview
-        SectionHeader("Live Preview")
-        ButtonPreviewRegistry.previews[spec.id]?.invoke(playgroundState)
+        // 2 & 3. Live Preview + Interactive Playground — only for components with a
+        // registered live preview. Each category with a playground gets its own state
+        // holder and controls (a button's label/enabled and text's content/bold/italic
+        // aren't the same shape); categories without one skip these two sections
+        // rather than showing an empty/irrelevant preview and playground controls.
+        when {
+            ButtonPreviewRegistry.previews.containsKey(spec.id) -> {
+                val playgroundState by buttonPlaygroundViewModel.state.collectAsState()
 
-        // 3. Interactive Playground
-        SectionHeader("Interactive Playground")
-        PlaygroundControls(
-            state = playgroundState,
-            onLabelChange = playgroundViewModel::setLabel,
-            onEnabledChange = playgroundViewModel::setEnabled
-        )
+                SectionHeader("Live Preview")
+                ButtonPreviewRegistry.previews[spec.id]?.invoke(playgroundState)
+
+                SectionHeader("Interactive Playground")
+                PlaygroundControls(
+                    state = playgroundState,
+                    onLabelChange = buttonPlaygroundViewModel::setLabel,
+                    onEnabledChange = buttonPlaygroundViewModel::setEnabled
+                )
+            }
+            TextPreviewRegistry.previews.containsKey(spec.id) -> {
+                val playgroundState by textPlaygroundViewModel.state.collectAsState()
+
+                SectionHeader("Live Preview")
+                TextPreviewRegistry.previews[spec.id]?.invoke(playgroundState)
+
+                SectionHeader("Interactive Playground")
+                TextPlaygroundControls(
+                    state = playgroundState,
+                    onTextChange = textPlaygroundViewModel::setText,
+                    onBoldChange = textPlaygroundViewModel::setBold,
+                    onItalicChange = textPlaygroundViewModel::setItalic
+                )
+            }
+        }
 
         // 4. Compose Code
         SectionHeader("Compose Code")

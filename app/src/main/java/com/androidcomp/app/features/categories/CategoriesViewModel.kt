@@ -15,10 +15,14 @@ class CategoriesViewModel @Inject constructor(
     getComponentsByCategoryUseCase: GetComponentsByCategoryUseCase
 ) : ViewModel() {
 
-    private val _buttonComponents = MutableStateFlow<List<ComponentSpec>>(emptyList())
-    val buttonComponents: StateFlow<List<ComponentSpec>> = _buttonComponents.asStateFlow()
+    private val _categorizedComponents =
+        MutableStateFlow<List<Pair<ComponentCategory, List<ComponentSpec>>>>(emptyList())
+    val categorizedComponents: StateFlow<List<Pair<ComponentCategory, List<ComponentSpec>>>> =
+        _categorizedComponents.asStateFlow()
 
     init {
-        _buttonComponents.value = getComponentsByCategoryUseCase(ComponentCategory.BUTTONS)
+        _categorizedComponents.value = ComponentCategory.entries
+            .map { category -> category to getComponentsByCategoryUseCase(category) }
+            .filter { (_, specs) -> specs.isNotEmpty() }
     }
 }
