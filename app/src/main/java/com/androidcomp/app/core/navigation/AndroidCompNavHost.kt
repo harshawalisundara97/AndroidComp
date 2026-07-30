@@ -14,7 +14,6 @@ import com.androidcomp.app.features.home.HomeScreen
 import com.androidcomp.app.features.news.NewsDetailScreen
 import com.androidcomp.app.features.settings.SettingsScreen
 import com.androidcomp.app.features.settings.SettingsViewModel
-import com.androidcomp.app.features.search.SearchScreen
 
 @Composable
 fun AndroidCompNavHost(
@@ -31,11 +30,6 @@ fun AndroidCompNavHost(
                 onViewAllCategoriesClick = { navController.navigateToTab(Route.Categories) },
                 onNewsClick = { newsId -> navController.navigate(Route.NewsDetail.buildRoute(newsId)) }
             )
-        }
-        composable(Route.Search.path) {
-            SearchScreen(onComponentClick = { id ->
-                navController.navigate(Route.ComponentDetail.buildRoute(id))
-            })
         }
         composable(Route.Categories.path) {
             CategoriesScreen(onComponentClick = { id ->

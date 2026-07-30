@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,7 +31,6 @@ import com.androidcomp.app.core.ui.theme.AppRadii
 
 private fun iconFor(route: Route): ImageVector = when (route) {
     Route.Home -> Icons.Outlined.Home
-    Route.Search -> Icons.Outlined.Search
     Route.Categories -> Icons.Outlined.Category
     Route.Favorites -> Icons.Outlined.FavoriteBorder
     Route.Settings -> Icons.Outlined.Settings
@@ -41,7 +39,6 @@ private fun iconFor(route: Route): ImageVector = when (route) {
 
 private fun labelFor(route: Route): String = when (route) {
     Route.Home -> "Home"
-    Route.Search -> "Search"
     Route.Categories -> "Categories"
     Route.Favorites -> "Favorites"
     Route.Settings -> "Settings"

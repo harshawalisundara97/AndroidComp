@@ -5,7 +5,6 @@ import androidx.navigation.NavHostController
 
 sealed class Route(val path: String) {
     data object Home : Route("home")
-    data object Search : Route("search")
     data object Categories : Route("categories")
     data object Favorites : Route("favorites")
     data object Settings : Route("settings")
@@ -27,7 +26,7 @@ sealed class Route(val path: String) {
     }
 }
 
-val bottomNavRoutes = listOf(Route.Home, Route.Search, Route.Categories, Route.Favorites, Route.Settings)
+val bottomNavRoutes = listOf(Route.Home, Route.Categories, Route.Favorites, Route.Settings)
 
 /**
  * Navigates to a bottom-nav destination using the standard tab-switch pattern
