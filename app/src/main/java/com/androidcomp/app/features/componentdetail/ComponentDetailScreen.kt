@@ -33,6 +33,8 @@ import com.androidcomp.app.features.selectioncontrols.preview.SelectionPreviewRe
 import com.androidcomp.app.features.progress.playground.ProgressPlaygroundControls
 import com.androidcomp.app.features.progress.playground.ProgressPlaygroundViewModel
 import com.androidcomp.app.features.progress.preview.ProgressPreviewRegistry
+import com.androidcomp.app.features.selectioncontrols.toggles.ToggleStylesShowcase
+import com.androidcomp.app.features.selectioncontrols.toggles.ToggleStylesViewModel
 
 @Composable
 fun ComponentDetailScreen(
@@ -42,7 +44,8 @@ fun ComponentDetailScreen(
     buttonPlaygroundViewModel: PlaygroundViewModel = hiltViewModel(),
     textPlaygroundViewModel: TextPlaygroundViewModel = hiltViewModel(),
     selectionPlaygroundViewModel: SelectionPlaygroundViewModel = hiltViewModel(),
-    progressPlaygroundViewModel: ProgressPlaygroundViewModel = hiltViewModel()
+    progressPlaygroundViewModel: ProgressPlaygroundViewModel = hiltViewModel(),
+    toggleStylesViewModel: ToggleStylesViewModel = hiltViewModel()
 ) {
     val spec by detailViewModel.spec.collectAsState()
 
@@ -63,6 +66,7 @@ fun ComponentDetailScreen(
                     textPlaygroundViewModel,
                     selectionPlaygroundViewModel,
                     progressPlaygroundViewModel,
+                    toggleStylesViewModel,
                     onRelatedComponentClick
                 )
             }
@@ -77,6 +81,7 @@ private fun ComponentDetailContent(
     textPlaygroundViewModel: TextPlaygroundViewModel,
     selectionPlaygroundViewModel: SelectionPlaygroundViewModel,
     progressPlaygroundViewModel: ProgressPlaygroundViewModel,
+    toggleStylesViewModel: ToggleStylesViewModel,
     onRelatedComponentClick: (String) -> Unit
 ) {
     Column {
@@ -141,6 +146,22 @@ private fun ComponentDetailContent(
                 ProgressPlaygroundControls(
                     state = playgroundState,
                     onProgressChange = progressPlaygroundViewModel::setProgress
+                )
+            }
+            spec.id == "selection-toggle-styles" -> {
+                val toggleStylesState by toggleStylesViewModel.state.collectAsState()
+
+                // This showcase renders 5 self-contained, independently tappable toggles —
+                // the interaction IS the live preview, so there's no separate generic
+                // "Interactive Playground" controls section here.
+                SectionHeader("Live Preview")
+                ToggleStylesShowcase(
+                    state = toggleStylesState,
+                    onFluidSpringChange = toggleStylesViewModel::setFluidSpring,
+                    onDayNightChange = toggleStylesViewModel::setDayNight,
+                    onCyberpunkNeonChange = toggleStylesViewModel::setCyberpunkNeon,
+                    onNeumorphicChange = toggleStylesViewModel::setNeumorphic,
+                    onElasticPillChange = toggleStylesViewModel::setElasticPill
                 )
             }
         }

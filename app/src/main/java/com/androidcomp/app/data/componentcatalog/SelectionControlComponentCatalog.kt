@@ -206,5 +206,61 @@ object SelectionControlComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(checkbox, radioButton, switch)
+    private val toggleStyles = ComponentSpec(
+        id = "selection-toggle-styles",
+        category = ComponentCategory.SELECTION_CONTROLS,
+        title = "Custom Toggle Styles",
+        overview = "Five fully custom-designed toggle switches beyond the standard Material 3 " +
+            "Switch — each with its own track shape, color animation, and motion feel (spring " +
+            "bounce, icon morph, neon glow, neumorphic depth, or rubber-like squish). Tap each " +
+            "one below to see it animate, and copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun CustomToggle(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+                    val trackColor by animateColorAsState(if (checked) activeColor else inactiveColor)
+                    val thumbOffset by animateDpAsState(if (checked) travelDistance else 0.dp)
+
+                    Box(
+                        Modifier
+                            .size(56.dp, 32.dp)
+                            .background(trackColor, RoundedCornerShape(50))
+                            .clickable { onCheckedChange(!checked) }
+                    ) {
+                        Box(Modifier.offset(x = thumbOffset).size(24.dp).background(Color.White, CircleShape))
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("checked", "Boolean", "required", "Current on/off state driving color, position, and icon animations."),
+            ComponentProperty("onCheckedChange", "(Boolean) -> Unit", "required", "Called when the toggle is tapped."),
+            ComponentProperty("trackColor animation", "State<Color> via animateColorAsState", "n/a", "Interpolates the track's background between its inactive and active colors."),
+            ComponentProperty("thumb motion spec", "AnimationSpec<Dp>", "varies per style", "spring() for bounce/elastic feels, tween() for mechanical or soft glides.")
+        ),
+        events = listOf("onCheckedChange — fired on tap, same contract as Material3 Switch so it's a drop-in replacement."),
+        bestPractices = listOf(
+            "Keep a custom toggle's animation duration under ~500ms so it still reads as immediate feedback, not a delay.",
+            "Reuse one AnimationSpec (spring vs tween) consistently across a design system rather than mixing feels arbitrarily per screen."
+        ),
+        commonMistakes = listOf(
+            "Building a fully custom toggle without also implementing accessibility semantics (Modifier.toggleable with Role.Switch), leaving it invisible to TalkBack.",
+            "Hardcoding pixel offsets instead of computing thumb travel from actual track/thumb sizes, which breaks if either is resized later."
+        ),
+        accessibilityNotes = listOf(
+            "Custom-drawn toggles must apply `Modifier.toggleable(value = checked, onValueChange = ..., role = Role.Switch)` so screen readers announce them correctly — plain `clickable` alone is not enough.",
+            "Don't rely on color change alone to convey state (e.g. gray vs cyan) — the position change and/or icon swap should also be perceivable for color-blind users."
+        ),
+        performanceNotes = listOf(
+            "Prefer `Modifier.graphicsLayer` for scale/rotation animations (as used for the spin and squish effects here) — it animates on the compositor without triggering layout/measure passes.",
+            "animateColorAsState/animateDpAsState are cheap for a handful of toggles; for a long list of many toggles, consider driving animations from a single shared transition instead of one per row."
+        ),
+        relatedComponentIds = listOf("selection-switch"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(checkbox, radioButton, switch, toggleStyles)
 }
