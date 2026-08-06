@@ -186,5 +186,61 @@ object MaterialComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(card, chip, badge)
+    private val cardStyles = ComponentSpec(
+        id = "material-card-styles",
+        category = ComponentCategory.MATERIAL_COMPONENTS,
+        title = "Custom Card Styles",
+        overview = "Five custom card designs beyond the standard Material 3 Card — a stat " +
+            "card, image card, gradient card, minimal bordered card, and elevated interactive " +
+            "card — each demonstrating a different real-world use case and motion feel. Tap " +
+            "each one to see it respond, and copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun CustomCard(onClick: () -> Unit) {
+                    Box(
+                        Modifier
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(containerColor)
+                            .clickable { onClick() }
+                            .padding(20.dp)
+                    ) {
+                        Column {
+                            Text(title)
+                            Text(subtitle)
+                        }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("shape", "RoundedCornerShape", "24.dp (this app's card radius)", "Corner radius; kept consistent across all 5 styles per the app's design system."),
+            ComponentProperty("elevation animation", "State<Dp> via animateDpAsState", "varies per style", "Drives the press-in/press-out shadow feel on the Gradient and Elevated Interactive styles."),
+            ComponentProperty("onClick", "() -> Unit", "required (for interactive styles)", "Called on tap; the Stat and Image cards use it to update local state (count, saved flag).")
+        ),
+        events = listOf("onClick — fired on tap, same contract as a standard clickable Card."),
+        bestPractices = listOf(
+            "Keep a consistent corner radius across all custom card variants in one app, even when their fill/border treatment differs.",
+            "Reserve gradient/glow treatments for a small number of high-emphasis cards (e.g. a premium upsell) — using them everywhere dilutes the effect."
+        ),
+        commonMistakes = listOf(
+            "Building a fully custom clickable card without Modifier.semantics/Role.Button-equivalent handling, leaving it invisible to TalkBack as an actionable element.",
+            "Stacking heavy shadows on many custom cards in a scrolling list, hurting both performance and visual calm."
+        ),
+        accessibilityNotes = listOf(
+            "A clickable custom card should expose a meaningful merged content description (e.g. \"View Analytics, updated 2 minutes ago\") rather than reading each Text child separately.",
+            "Ensure text contrast holds up against gradient/colored backgrounds specifically — check both ends of a gradient, not just the average color."
+        ),
+        performanceNotes = listOf(
+            "Prefer Modifier.shadow's ambientColor/spotColor over stacking multiple background layers to fake elevation — it's a single compositor-backed effect.",
+            "For a scrolling grid of custom cards, ensure each card's internal state (like the Stat card's counter) is scoped narrowly so scrolling doesn't trigger unrelated recomposition."
+        ),
+        relatedComponentIds = listOf("material-card"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(card, chip, badge, cardStyles)
 }

@@ -35,6 +35,11 @@ import com.androidcomp.app.features.progress.playground.ProgressPlaygroundViewMo
 import com.androidcomp.app.features.progress.preview.ProgressPreviewRegistry
 import com.androidcomp.app.features.selectioncontrols.toggles.ToggleStylesShowcase
 import com.androidcomp.app.features.selectioncontrols.toggles.ToggleStylesViewModel
+import com.androidcomp.app.features.buttons.customstyles.ButtonLoadState
+import com.androidcomp.app.features.buttons.customstyles.CustomButtonsShowcase
+import com.androidcomp.app.features.buttons.customstyles.CustomButtonsViewModel
+import com.androidcomp.app.features.materialcomponents.cardstyles.CardStylesShowcase
+import com.androidcomp.app.features.materialcomponents.cardstyles.CardStylesViewModel
 
 @Composable
 fun ComponentDetailScreen(
@@ -45,7 +50,9 @@ fun ComponentDetailScreen(
     textPlaygroundViewModel: TextPlaygroundViewModel = hiltViewModel(),
     selectionPlaygroundViewModel: SelectionPlaygroundViewModel = hiltViewModel(),
     progressPlaygroundViewModel: ProgressPlaygroundViewModel = hiltViewModel(),
-    toggleStylesViewModel: ToggleStylesViewModel = hiltViewModel()
+    toggleStylesViewModel: ToggleStylesViewModel = hiltViewModel(),
+    customButtonsViewModel: CustomButtonsViewModel = hiltViewModel(),
+    cardStylesViewModel: CardStylesViewModel = hiltViewModel()
 ) {
     val spec by detailViewModel.spec.collectAsState()
 
@@ -67,6 +74,8 @@ fun ComponentDetailScreen(
                     selectionPlaygroundViewModel,
                     progressPlaygroundViewModel,
                     toggleStylesViewModel,
+                    customButtonsViewModel,
+                    cardStylesViewModel,
                     onRelatedComponentClick
                 )
             }
@@ -82,6 +91,8 @@ private fun ComponentDetailContent(
     selectionPlaygroundViewModel: SelectionPlaygroundViewModel,
     progressPlaygroundViewModel: ProgressPlaygroundViewModel,
     toggleStylesViewModel: ToggleStylesViewModel,
+    customButtonsViewModel: CustomButtonsViewModel,
+    cardStylesViewModel: CardStylesViewModel,
     onRelatedComponentClick: (String) -> Unit
 ) {
     Column {
@@ -163,6 +174,35 @@ private fun ComponentDetailContent(
                     onNeumorphicChange = toggleStylesViewModel::setNeumorphic,
                     onElasticPillChange = toggleStylesViewModel::setElasticPill
                 )
+            }
+            spec.id == "button-custom-styles" -> {
+                val customButtonsState by customButtonsViewModel.state.collectAsState()
+
+                // Same as the toggle showcase — the interaction IS the live preview,
+                // no separate generic "Interactive Playground" controls section here.
+                SectionHeader("Live Preview")
+                CustomButtonsShowcase(
+                    loadState = customButtonsState.loadState,
+                    onLoadingButtonClick = customButtonsViewModel::startLoadingDemo
+                )
+            }
+            spec.id == "material-card-styles" -> {
+                val cardStylesState by cardStylesViewModel.state.collectAsState()
+
+                // Same as the toggle/button showcases — the interaction IS the live
+                // preview, no separate generic "Interactive Playground" section here.
+                SectionHeader("Live Preview")
+                CardStylesShowcase(
+                    state = cardStylesState,
+                    onStatCardIncrement = cardStylesViewModel::incrementStat,
+                    onImageCardToggleSaved = cardStylesViewModel::toggleImageSaved
+                )
+            }
+            GenericLivePreviewRegistry.previews.containsKey(spec.id) -> {
+                // Self-contained preview composables (own local state) for categories
+                // without a dedicated playground — no separate controls section needed.
+                SectionHeader("Live Preview")
+                GenericLivePreviewRegistry.previews[spec.id]?.invoke()
             }
         }
 

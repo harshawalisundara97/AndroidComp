@@ -314,5 +314,63 @@ object ButtonComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(filled, filledTonal, outlined, text, elevated, icon)
+    private val customStyles = ComponentSpec(
+        id = "button-custom-styles",
+        category = ComponentCategory.BUTTONS,
+        title = "Custom Button Styles",
+        overview = "Five fully custom-designed buttons beyond the standard Material 3 Button — " +
+            "each with its own press feedback and motion feel (gradient glow, neumorphic sink, " +
+            "sliding icon, outline sweep-fill, or a full loading-to-success sequence). Tap each " +
+            "one to see it animate, and copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun CustomButton(onClick: () -> Unit) {
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val pressed by interactionSource.collectIsPressedAsState()
+                    val scale by animateFloatAsState(if (pressed) 0.96f else 1f)
+
+                    Box(
+                        Modifier
+                            .graphicsLayer { scaleX = scale; scaleY = scale }
+                            .clip(RoundedCornerShape(50))
+                            .background(Brush.horizontalGradient(listOf(startColor, endColor)))
+                            .clickable(interactionSource, indication = null) { onClick() }
+                            .padding(horizontal = 28.dp, vertical = 14.dp)
+                    ) {
+                        Text("Get Started", color = Color.White)
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("onClick", "() -> Unit", "required", "Called when the button is tapped."),
+            ComponentProperty("interactionSource press state", "State<Boolean> via collectIsPressedAsState", "n/a", "Drives per-style press feedback (scale, elevation, sweep-fill, icon offset)."),
+            ComponentProperty("loadState (loading-state variant only)", "ButtonLoadState", "IDLE", "IDLE / LOADING / SUCCESS — driven by a coroutine simulating an async action.")
+        ),
+        events = listOf("onClick — same contract as a standard Button, so any of these five are drop-in replacements."),
+        bestPractices = listOf(
+            "Pass indication = null on clickable() when you're already animating scale/color/elevation yourself — the default ripple fights with custom press feedback.",
+            "For the loading-state pattern, disable the click target while LOADING/SUCCESS so a second tap can't restart the sequence mid-animation."
+        ),
+        commonMistakes = listOf(
+            "Forgetting to guard the loading button's onClick with `enabled = loadState == IDLE`, letting users spam-trigger overlapping coroutines.",
+            "Animating scale/rotation via layout properties instead of Modifier.graphicsLayer, which is more expensive since it triggers measure/layout instead of just redraw."
+        ),
+        accessibilityNotes = listOf(
+            "A custom-drawn button built on Modifier.clickable already gets the correct Button semantics and touch target handling — no extra Modifier.semantics needed here.",
+            "Keep press animations under ~300ms; longer feedback delays can make the button feel unresponsive to screen-reader and switch-access users."
+        ),
+        performanceNotes = listOf(
+            "collectIsPressedAsState() reads from a Flow already backed by the touch input system — cheap to observe per-button, no extra polling.",
+            "The outline sweep-fill button scales an inner Box via graphicsLayer rather than animating its width directly, keeping the effect on the compositor instead of triggering layout on every frame."
+        ),
+        relatedComponentIds = listOf("button-filled"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(filled, filledTonal, outlined, text, elevated, icon, customStyles)
 }
