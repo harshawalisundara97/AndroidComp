@@ -163,5 +163,63 @@ object MediaComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(exoPlayer, mediaSession)
+    private val customStyles = ComponentSpec(
+        id = "media-custom-styles",
+        category = ComponentCategory.MEDIA,
+        title = "Custom Media Player Styles",
+        overview = "Five fully custom-designed media UI patterns beyond a bare PlayerView — an " +
+            "audio player card with a waveform, a video thumbnail with a play overlay, a mini " +
+            "player bottom bar, a draggable playback scrubber, and a queue list item — each with " +
+            "genuine Compose animation and simulated (not real) playback state. Tap or drag each " +
+            "one below and copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun AudioPlayerCard(isPlaying: Boolean, elapsedSeconds: Int, totalSeconds: Int, onTogglePlay: () -> Unit) {
+                    val progress = elapsedSeconds.toFloat() / totalSeconds
+                    Row(Modifier.clip(RoundedCornerShape(24.dp)).background(surfaceVariant).padding(16.dp)) {
+                        Box(Modifier.size(44.dp).clip(CircleShape).background(Color(0xFF2F6FED)).clickable { onTogglePlay() }) {
+                            AnimatedContent(isPlaying) { playing ->
+                                Icon(if (playing) Icons.Outlined.Pause else Icons.Outlined.PlayArrow, tint = Color.White)
+                            }
+                        }
+                        // waveform bars + elapsed/total labels driven by `progress`
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("isPlaying / progress", "Boolean / Float", "n/a", "Drives icon crossfade, waveform fill, and animated progress lines/thumbs across the five designs."),
+            ComponentProperty("onTogglePlay / onProgressChanged", "() -> Unit / (Float) -> Unit", "required", "Callbacks that mutate ViewModel state; playback itself is simulated via a coroutine ticker, not real media."),
+            ComponentProperty("MutableInteractionSource", "InteractionSource", "n/a", "Used by the video thumbnail's play button to derive a press-scale animation without a full state field.")
+        ),
+        events = listOf(
+            "onTogglePlay — fired when the audio player or mini player's play/pause control is tapped.",
+            "onProgressChanged — fired continuously while dragging the playback scrubber's thumb.",
+            "onQueueItemSelected — fired when a queue row is tapped, updating the now-playing highlight."
+        ),
+        bestPractices = listOf(
+            "Drive simulated playback with a cancellable coroutine loop (delay-based ticker) scoped to viewModelScope so it stops cleanly when playback is paused or the screen leaves composition.",
+            "Prefer graphicsLayer-based scale/offset animations (as used for the thumbnail press and scrubber thumb) over animating layout-affecting properties, to keep drags and presses smooth."
+        ),
+        commonMistakes = listOf(
+            "Reading real-time drag position without coercing it into the track's bounds, letting the scrubber thumb travel past the start/end of the track.",
+            "Forgetting to cancel a running playback-simulation coroutine when the user pauses, causing two competing tickers to advance the same elapsed-time state."
+        ),
+        accessibilityNotes = listOf(
+            "Custom-drawn play/pause icon buttons and the queue row's tap target must be at least 48x48dp and carry a contentDescription that reflects the current state (e.g. \"Pause\" vs \"Play\").",
+            "The playback scrubber is a custom drag surface, not a Slider — add semantics (progressBarRangeInfo) so screen readers can announce and adjust position."
+        ),
+        performanceNotes = listOf(
+            "The waveform and scrubber track are drawn once per frame via Canvas; keep the bar/segment count fixed rather than recomputing a new random layout on every recomposition.",
+            "animateColorAsState/animateDpAsState on the queue item's highlight are cheap for a short list; for a long queue, drive the now-playing highlight from a single shared index comparison rather than per-item derived state."
+        ),
+        relatedComponentIds = listOf("media-exoplayer", "media-session"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(exoPlayer, mediaSession, customStyles)
 }

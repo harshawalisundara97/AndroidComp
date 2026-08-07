@@ -157,5 +157,63 @@ object MenuComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(dropdownMenu, exposedDropdown)
+    private val menuCustomStyles = ComponentSpec(
+        id = "menu-custom-styles",
+        category = ComponentCategory.MENUS,
+        title = "Custom Menu Styles",
+        overview = "Five fully custom-designed menu patterns beyond the standard DropdownMenu — " +
+            "a bottom sheet action list, an icon-led context menu, a radial FAB menu, a " +
+            "checkmark-driven segmented dropdown, and an expandable nested submenu. Tap each " +
+            "one below to see it in action, and copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun SegmentedDropdown(selected: String, onSelectedChange: (String) -> Unit) {
+                    var expanded by remember { mutableStateOf(false) }
+                    Box {
+                        OutlinedButton(onClick = { expanded = true }) { Text(selected) }
+                        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                            options.forEach { option ->
+                                DropdownMenuItem(
+                                    text = { Text(option) },
+                                    trailingIcon = { if (option == selected) Icon(Icons.Outlined.Check, null) },
+                                    onClick = { expanded = false; onSelectedChange(option) }
+                                )
+                            }
+                        }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("sheetState", "SheetState via rememberModalBottomSheetState()", "n/a", "Drives the ModalBottomSheet's expand/collapse animation for the bottom sheet design."),
+            ComponentProperty("expanded", "Boolean", "required", "Controls visibility for the DropdownMenu-based designs (context menu, segmented dropdown, nested submenu)."),
+            ComponentProperty("offsetX / offsetY animation", "State<Float> via animateFloatAsState + spring()", "n/a", "Positions each radial menu action along an arc computed from sin/cos of its angle."),
+            ComponentProperty("submenuOpen", "Boolean", "false", "Toggles inline expansion of a nested submenu without dismissing the parent DropdownMenu.")
+        ),
+        events = listOf("onSelectionChange / onSelectedChange — fired when an item in a given menu design is chosen."),
+        bestPractices = listOf(
+            "Use ModalBottomSheet instead of DropdownMenu once an action list grows past a handful of items or needs icons and descriptions.",
+            "For radial menus, keep the arc to 3-4 actions max — beyond that, targets become too small and close together to tap reliably."
+        ),
+        commonMistakes = listOf(
+            "Forgetting to reset a nested submenu's open state in onDismissRequest, so it reopens already-expanded the next time the parent menu is shown.",
+            "Animating radial menu items with a plain tween instead of spring(), which reads as mechanical rather than a natural 'pop out' motion."
+        ),
+        accessibilityNotes = listOf(
+            "Every trigger (bottom sheet button, context menu button, FAB, dropdown button) needs a clear contentDescription or visible label describing what it opens.",
+            "Radial menu action buttons must stay at least 44-48dp so they remain tappable despite being visually smaller than the central FAB."
+        ),
+        performanceNotes = listOf(
+            "ModalBottomSheet content composes only while shown, same as DropdownMenu — no cost while closed.",
+            "Keep the radial menu's per-item animateFloatAsState calls independent (one per action) rather than deriving all positions from a single shared Animatable to keep spring physics per-item natural."
+        ),
+        relatedComponentIds = listOf("menu-dropdown", "menu-exposed-dropdown"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(dropdownMenu, exposedDropdown, menuCustomStyles)
 }

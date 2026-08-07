@@ -114,5 +114,56 @@ object TextComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(heading, body)
+    private val textCustomStyles = ComponentSpec(
+        id = "text-custom-styles",
+        category = ComponentCategory.TEXT,
+        title = "Custom Text Styles",
+        overview = "Five interactive text treatments beyond plain typography — gradient fills, a " +
+            "typewriter reveal, an expandable \"read more\" paragraph, a count-up number, and a " +
+            "tap-to-highlight phrase — each driven by genuine Compose animations. Tap each one " +
+            "below to see it respond, and copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun GradientText(variant: Int, onTap: () -> Unit) {
+                    val colors = gradientCombos[variant % gradientCombos.size]
+                    Text(
+                        "Design Beautifully",
+                        style = TextStyle(brush = Brush.linearGradient(colors), fontSize = 26.sp),
+                        modifier = Modifier.clickable { onTap() }
+                    )
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("TextStyle(brush = ...)", "Brush", "n/a", "Fills glyph outlines with a gradient instead of a flat color."),
+            ComponentProperty("visibleChars state", "Int", "0", "Drives the typewriter reveal by slicing the source string with take(n)."),
+            ComponentProperty("Modifier.animateContentSize()", "AnimationSpec<IntSize>", "spring()", "Animates the expandable text's height when its maxLines changes."),
+            ComponentProperty("animateIntAsState target", "Int", "0", "Counts up/down toward the target value for the animated counter.")
+        ),
+        events = listOf("onTap / onToggle — fired when the user taps the text to trigger its animation or state change."),
+        bestPractices = listOf(
+            "Keep typewriter and counter animation durations short (under ~1.5s total) so they feel responsive, not sluggish.",
+            "Use TextOverflow.Ellipsis with a fixed maxLines for the clamped state so collapse/expand never jumps unexpectedly."
+        ),
+        commonMistakes = listOf(
+            "Restarting a LaunchedEffect-driven animation on every recomposition by keying it on a value that changes too often.",
+            "Relying on color alone (e.g. a highlight) to convey meaning without any other visual or textual cue for accessibility."
+        ),
+        accessibilityNotes = listOf(
+            "Interactive text (tap-to-cycle, tap-to-expand) should be at least 48x48dp in touch target size, not just the glyph bounds.",
+            "Gradient-filled text can reduce contrast against certain backgrounds — verify WCAG AA against the darkest gradient stop."
+        ),
+        performanceNotes = listOf(
+            "animateIntAsState and animateColorAsState are cheap for single text elements; avoid restarting them unnecessarily via unstable lambda keys.",
+            "buildAnnotatedString allocations are lightweight but should be remembered/derived rather than rebuilt on every frame during animation."
+        ),
+        relatedComponentIds = listOf("text-heading", "text-body"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(heading, body, textCustomStyles)
 }

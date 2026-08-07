@@ -129,5 +129,74 @@ object ListComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(lazyColumn, lazyRow)
+    private val listCustomStyles = ComponentSpec(
+        id = "list-custom-styles",
+        category = ComponentCategory.LISTS,
+        title = "Custom List Row Patterns",
+        overview = "Five hand-built list row interactions beyond a plain LazyColumn row — swipe " +
+            "to delete, an expandable detail row, drag-to-reorder controls, a grouped sectioned " +
+            "list, and a connected timeline. Each responds to real touch input with genuine " +
+            "Compose animation. Copy the code for any pattern to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun SwipeToDeleteRow(item: SwipeItem, onDelete: () -> Unit) {
+                    var offsetX by remember { mutableFloatStateOf(0f) }
+                    val animatedOffsetX by animateFloatAsState(offsetX)
+
+                    Box(
+                        Modifier
+                            .graphicsLayer { translationX = animatedOffsetX }
+                            .pointerInput(item.id) {
+                                detectHorizontalDragGestures(
+                                    onDragEnd = {
+                                        if (offsetX < deleteThreshold) onDelete() else offsetX = 0f
+                                    },
+                                    onHorizontalDrag = { change, dragAmount ->
+                                        change.consume()
+                                        offsetX = (offsetX + dragAmount).coerceAtMost(0f)
+                                    }
+                                )
+                            }
+                    ) {
+                        Text(item.label)
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("swipeItems", "List<SwipeItem>", "n/a", "Backing list for the swipe-to-delete row; items are removed on a threshold-crossing drag."),
+            ComponentProperty("expandedRowId", "Int?", "null", "Id of the currently expanded detail row, or null if all are collapsed."),
+            ComponentProperty("onMove", "(Int, Int) -> Unit", "n/a", "Called with (fromIndex, toIndex) when the reorder controls swap two items."),
+            ComponentProperty("dotColor", "Color per timeline entry", "n/a", "Marks a timeline row as completed, active, or pending via its dot color.")
+        ),
+        events = listOf(
+            "onDelete(id) — fired once a swipe-to-delete drag crosses the dismiss threshold.",
+            "onToggle(id) — fired when an expandable row is tapped.",
+            "onMove(from, to) — fired when a reorder control is tapped."
+        ),
+        bestPractices = listOf(
+            "Drive swipe-to-delete offset through graphicsLayer translationX, not layout offset, to keep the drag on the compositor thread.",
+            "Always pass a stable key to items() in lists that reorder or delete, so item identity and internal state survive the mutation."
+        ),
+        commonMistakes = listOf(
+            "Not clamping swipe offset (coerceAtMost(0f)) which lets the row drag past the screen edge or reverse direction unexpectedly.",
+            "Reordering a list by mutating indices directly instead of removing then re-inserting the item, which can silently drop or duplicate entries."
+        ),
+        accessibilityNotes = listOf(
+            "Swipe-to-delete needs a non-gesture fallback (e.g. a long-press menu or visible delete icon) for users who cannot perform drag gestures.",
+            "Reorder controls (up/down buttons) are more accessible than drag-only reordering — keep them even if drag gestures are also supported."
+        ),
+        performanceNotes = listOf(
+            "Prefer animateContentSize() over manual height animation for the expandable row — it measures once and animates the size delta automatically.",
+            "Keep timeline/grouped list rendering flat (no nested LazyColumns) since the item counts here are small and don't need lazy windowing."
+        ),
+        relatedComponentIds = listOf("list-lazy-column"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(lazyColumn, lazyRow, listCustomStyles)
 }

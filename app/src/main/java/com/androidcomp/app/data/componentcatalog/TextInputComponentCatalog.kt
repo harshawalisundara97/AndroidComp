@@ -137,5 +137,61 @@ object TextInputComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(outlined, filled)
+    private val textInputCustomStyles = ComponentSpec(
+        id = "textinput-custom-styles",
+        category = ComponentCategory.TEXT_INPUTS,
+        title = "Custom Text Input Styles",
+        overview = "Five fully custom-designed input treatments beyond the standard Outlined/" +
+            "Filled fields — an animated-border field, a search bar with a fading clear icon, a " +
+            "boxed PIN/OTP input, a password field with a crossfading visibility toggle, and a " +
+            "minimal underline field. Interact with each below and copy its Compose code.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun FloatingLabelAnimatedBorderInput(value: String, onValueChange: (String) -> Unit) {
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val focused by interactionSource.collectIsFocusedAsState()
+                    val borderColor by animateColorAsState(if (focused) Color(0xFF2F6FED) else Color(0xFFDBDEE6))
+                    val borderWidth by animateDpAsState(if (focused) 2.dp else 1.dp)
+
+                    OutlinedTextField(
+                        value = value,
+                        onValueChange = onValueChange,
+                        interactionSource = interactionSource,
+                        modifier = Modifier.border(borderWidth, borderColor, RoundedCornerShape(16.dp))
+                    )
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("interactionSource", "MutableInteractionSource", "remember { ... }", "Exposes focus/press state used to drive the animated border and underline."),
+            ComponentProperty("collectIsFocusedAsState()", "State<Boolean>", "n/a", "Observes focus changes so colors/widths can animate in response."),
+            ComponentProperty("visualTransformation", "VisualTransformation", "PasswordVisualTransformation()", "Masks input for the password field; swapped to None when visibility is toggled."),
+            ComponentProperty("decorationBox", "@Composable (() -> Unit) -> Unit", "n/a", "Used by BasicTextField to render the boxed OTP digits and the minimal underline around the real cursor.")
+        ),
+        events = listOf("onValueChange — fired on every keystroke.", "onToggleVisible — fired when the password eye icon is tapped."),
+        bestPractices = listOf(
+            "Cap the OTP BasicTextField's accepted input to digits and the expected length in onValueChange, not just visually.",
+            "Animate border/underline color and width together (not just one) so focus feels like a single cohesive transition."
+        ),
+        commonMistakes = listOf(
+            "Building a custom BasicTextField-based input without forwarding a proper keyboardOptions/KeyboardType, breaking autofill and numeric keyboards.",
+            "Making the OTP boxes purely decorative divs instead of driving them from one real backing text field, which breaks paste and screen-reader input."
+        ),
+        accessibilityNotes = listOf(
+            "The invisible/transparent text in the OTP input must still be a real BasicTextField so TalkBack and autofill (SMS code) work correctly.",
+            "Password visibility toggle icons need a contentDescription that changes with state (\"Show password\" / \"Hide password\")."
+        ),
+        performanceNotes = listOf(
+            "animateColorAsState/animateDpAsState per field is cheap; avoid recreating MutableInteractionSource on every recomposition by using remember.",
+            "Prefer BasicTextField's decorationBox over stacking a separate Row of read-only Text boxes on top of a hidden field."
+        ),
+        relatedComponentIds = listOf("textinput-outlined", "textinput-filled"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(outlined, filled, textInputCustomStyles)
 }

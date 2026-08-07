@@ -206,5 +206,72 @@ object PermissionComponentCatalog {
         minApi = 23
     )
 
-    val all: List<ComponentSpec> = listOf(requestPermission, requestMultiplePermissions, checkRuntimePermission)
+    private val permissionCustomStyles = ComponentSpec(
+        id = "permission-custom-styles",
+        category = ComponentCategory.PERMISSIONS,
+        title = "Custom Permission UI Styles",
+        overview = "Five real-world, hand-styled permission UI patterns — a rationale card, " +
+            "a status chip, a settings-redirect banner, a permission checklist, and a pulsing " +
+            "shield prompt — built as pure mock UI with genuine Compose animations and no real " +
+            "runtime permission calls.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                val borderColor by animateColorAsState(
+                    if (granted) Color(0xFF2ECC71) else Color(0xFFF2F2F2)
+                )
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(Color.White, RoundedCornerShape(24.dp))
+                        .border(1.dp, borderColor, RoundedCornerShape(24.dp))
+                        .padding(20.dp)
+                ) {
+                    AnimatedContent(granted) { isGranted ->
+                        if (isGranted) {
+                            // checkmark + \"Access Granted\" row
+                        } else {
+                            // icon + rationale text + Allow / Not now buttons
+                        }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("rationaleGranted", "Boolean", "false", "Drives the Rationale Card's animated transition into its Granted state."),
+            ComponentProperty("statusChipState", "PermissionGrantState", "NOT_REQUESTED", "Tri-state enum cycled by tapping the Status Chip."),
+            ComponentProperty("settingsBannerDismissed", "Boolean", "false", "Controls the AnimatedVisibility of the Settings Redirect Banner."),
+            ComponentProperty("checklist", "List<ChecklistPermission>", "4 mock permissions", "Backs the Permission Checklist; each row toggles independently."),
+            ComponentProperty("shieldPromptGranted", "Boolean", "false", "Stops the infinite pulse animation and swaps the shield icon once granted.")
+        ),
+        events = listOf(
+            "onAllow / onNotNow — Rationale Card button taps.",
+            "onClick — Status Chip tap, cycles Not requested -> Granted -> Denied.",
+            "onOpenSettings — Settings Redirect Banner button tap (mock only, no real Settings intent).",
+            "onToggle(label) — Permission Checklist row tap.",
+            "onAllow — Animated Shield Prompt button tap."
+        ),
+        bestPractices = listOf(
+            "Keep these patterns as pure UI mockups when illustrating design language; wire them to real ActivityResultContracts calls only at the screen/ViewModel layer.",
+            "Use animateColorAsState / AnimatedContent for state transitions so denial and grant feel intentional rather than abrupt."
+        ),
+        commonMistakes = listOf(
+            "Treating a mock \"Open Settings\" banner as a substitute for a real Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS) call in production code.",
+            "Forgetting to re-check real permission state in onResume after a user returns from system Settings, when adapting this pattern to production."
+        ),
+        accessibilityNotes = listOf(
+            "Status Chip and checklist rows must expose their granted/denied state via contentDescription or semantics, not color alone.",
+            "All tap targets (chip, banner button, checklist rows) should meet the 48x48dp minimum touch target guideline."
+        ),
+        performanceNotes = listOf(
+            "rememberInfiniteTransition in the Shield Prompt keeps animating while composed; stop or hide it once granted to avoid unnecessary recomposition.",
+            "AnimatedContent/AnimatedVisibility allocate lightweight transition state; safe to use per-row in the checklist without notable overhead."
+        ),
+        relatedComponentIds = listOf("permission-request", "permission-request-multiple", "permission-check-runtime"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(requestPermission, requestMultiplePermissions, checkRuntimePermission, permissionCustomStyles)
 }

@@ -262,5 +262,63 @@ object SelectionControlComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(checkbox, radioButton, switch, toggleStyles)
+    private val selectionCustomStyles = ComponentSpec(
+        id = "selection-custom-styles",
+        category = ComponentCategory.SELECTION_CONTROLS,
+        title = "Custom Selection Control Styles",
+        overview = "Five fully custom-designed selection controls beyond Checkbox/RadioButton/Switch " +
+            "— a card-style selectable plan option, a tap-to-rate star rating, a color swatch " +
+            "picker with an animated ring, a sliding segmented toggle group, and a stepper " +
+            "counter. Tap each one below to see it animate, and copy its Compose code to reuse " +
+            "directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun ColorSwatchSelector(selectedIndex: Int, onSelect: (Int) -> Unit) {
+                    Row {
+                        colors.forEachIndexed { index, color ->
+                            val ringWidth by animateDpAsState(if (index == selectedIndex) 3.dp else 0.dp)
+                            Box(
+                                Modifier
+                                    .size(40.dp)
+                                    .border(ringWidth, MaterialTheme.colorScheme.primary, CircleShape)
+                                    .background(color, CircleShape)
+                                    .clickable { onSelect(index) }
+                            )
+                        }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("selectedPlan / selectedColorIndex / segmentedIndex", "String / Int", "required", "The currently selected option for each design, hoisted in a single state class."),
+            ComponentProperty("starRating", "Int", "0", "Current rating from 0-5, driving which stars render filled."),
+            ComponentProperty("stepperCount", "Int", "required", "Current counter value, coerced within a min/max bound in the ViewModel."),
+            ComponentProperty("onSelect / onRatingChange / onIncrement / onDecrement", "(T) -> Unit", "required", "Called when the user interacts with each design's control.")
+        ),
+        events = listOf("onSelect, onRatingChange, onIncrement/onDecrement — fired on tap, updating the hoisted state for each design independently."),
+        bestPractices = listOf(
+            "Animate the selection indicator (border, ring, sliding highlight) with animateDpAsState/animateColorAsState rather than snapping instantly, so the change reads as a deliberate action.",
+            "Coerce stepper/rating values within valid bounds in the ViewModel, not the composable, so the UI can never display an invalid value even momentarily."
+        ),
+        commonMistakes = listOf(
+            "Building a fully custom selectable card/swatch without `Modifier.selectable()`/`Role.RadioButton` semantics, making it invisible to TalkBack as a selection control.",
+            "Using raw `clickable` for a segmented toggle group instead of `selectableGroup()` on the container, losing the 'one of N' semantic relationship between segments."
+        ),
+        accessibilityNotes = listOf(
+            "Card-style and swatch selectors must expose `Role.RadioButton` (or `Checkbox` for independent multi-select) via `Modifier.selectable`/`toggleable` — visual selection state alone is not enough for screen readers.",
+            "Star ratings should announce the numeric rating (e.g. \"3 out of 5 stars\") via `contentDescription`, not just render filled/outlined icons."
+        ),
+        performanceNotes = listOf(
+            "animateDpAsState-driven ring/indicator animations are cheap for a handful of controls; for a long list of selectable cards, scope each row's animation state narrowly to avoid recomposing siblings.",
+            "Prefer `Modifier.graphicsLayer` scale for the star-rating tap feedback over layout-affecting size changes, to skip unnecessary re-measurement."
+        ),
+        relatedComponentIds = listOf("selection-checkbox", "selection-radio-button", "selection-toggle-styles"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(checkbox, radioButton, switch, toggleStyles, selectionCustomStyles)
 }

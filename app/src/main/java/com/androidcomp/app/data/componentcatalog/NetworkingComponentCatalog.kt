@@ -135,5 +135,70 @@ object NetworkingComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(retrofit, okHttpInterceptor)
+    private val networkingCustomStyles = ComponentSpec(
+        id = "networking-custom-styles",
+        category = ComponentCategory.NETWORKING,
+        title = "Custom Networking State UI",
+        overview = "Five fully custom-designed UI patterns for representing common networking " +
+            "states — connectivity, retry/failure, loading, request/response lifecycle, and " +
+            "signal quality — each with genuine Compose animation and no real network calls. " +
+            "Tap each one to see it react, and copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun ConnectionStatusBanner(isOnline: Boolean, onToggle: () -> Unit) {
+                    val bannerColor by animateColorAsState(
+                        if (isOnline) Color(0xFF2ECC71) else Color(0xFFE74C3C)
+                    )
+                    AnimatedContent(
+                        targetState = isOnline,
+                        transitionSpec = {
+                            (slideInVertically { -it } + fadeIn()) togetherWith
+                                (slideOutVertically { -it } + fadeOut())
+                        }
+                    ) { online ->
+                        Row(Modifier.background(bannerColor, RoundedCornerShape(14.dp))) {
+                            Text(if (online) "Back online" else "You're offline", color = Color.White)
+                        }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("isOnline / retryFailed / signalLevel", "Boolean / SignalLevel", "n/a", "Simulated connectivity state fields hoisted in NetworkingStylesState, driving each design's animation."),
+            ComponentProperty("requestPhase", "RequestPhase enum (IDLE/SENDING/AWAITING/DONE)", "IDLE", "Drives the Request/Response demo card's AnimatedContent between phase labels."),
+            ComponentProperty("onRetry / onSendRequest / onCycleSignal", "() -> Unit", "required", "Lambdas invoked on tap, each kicking off a coroutine delay() sequence in the ViewModel to fake network timing."),
+            ComponentProperty("shimmer alpha", "State<Float> via InfiniteTransition.animateFloat", "n/a", "Drives the pulsing placeholder-row shimmer while content is 'awaiting' its simulated response.")
+        ),
+        events = listOf(
+            "onToggle — flips simulated connectivity between online/offline for the banner.",
+            "onRetry — re-runs the retry flow, alternating success/failure outcomes.",
+            "onSimulateResponseArrive — ends the shimmer phase and fades in mock content.",
+            "onSendRequest — walks the request/response card through its phase sequence.",
+            "onCycleSignal — advances the signal indicator through Excellent → Good → Poor."
+        ),
+        bestPractices = listOf(
+            "Model network phases as an enum (RequestPhase) rather than several booleans so illegal state combinations can't occur.",
+            "Keep simulated delay() timings short (under ~1.5s per phase) so the mock still reads as a fast, responsive demo."
+        ),
+        commonMistakes = listOf(
+            "Letting a user re-trigger retry/send while a simulated request is already in flight — guard with a loading/phase check as done here (retryLoading, requestPhase != IDLE).",
+            "Using color alone (red/green) to convey connectivity or success/failure without an icon or text label, which fails color-blind users."
+        ),
+        accessibilityNotes = listOf(
+            "Pair every status color (offline red, online green, poor-signal red) with an icon and text label, never color alone.",
+            "Loading indicators (CircularProgressIndicator, shimmer rows) should be accompanied by an accessible content description or live-region announcement when state changes in a real implementation."
+        ),
+        performanceNotes = listOf(
+            "The shimmer effect uses a single InfiniteTransition per row; for long lists of shimmering rows, share one InfiniteTransition and offset phases instead of creating one per item.",
+            "AnimatedContent's default fade+slide transitions are compositor-driven and cheap; avoid adding expensive per-frame recomposition inside the animated content lambda."
+        ),
+        relatedComponentIds = listOf("networking-retrofit", "networking-okhttp-interceptor"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(retrofit, okHttpInterceptor, networkingCustomStyles)
 }
