@@ -82,6 +82,10 @@ import com.androidcomp.app.features.camera.customstyles.CameraStylesShowcase
 import com.androidcomp.app.features.camera.customstyles.CameraStylesViewModel
 import com.androidcomp.app.features.sliders.customstyles.SliderStylesShowcase
 import com.androidcomp.app.features.sliders.customstyles.SliderStylesViewModel
+import com.androidcomp.app.features.notifications.customstyles.NotificationStylesShowcase
+import com.androidcomp.app.features.notifications.customstyles.NotificationStylesViewModel
+import com.androidcomp.app.features.materialcomponents.customstyles.MaterialStylesShowcase
+import com.androidcomp.app.features.materialcomponents.customstyles.MaterialStylesViewModel
 
 @Composable
 fun ComponentDetailScreen(
@@ -115,7 +119,9 @@ fun ComponentDetailScreen(
     selectionStylesViewModel: SelectionStylesViewModel = hiltViewModel(),
     sensorStylesViewModel: SensorStylesViewModel = hiltViewModel(),
     cameraStylesViewModel: CameraStylesViewModel = hiltViewModel(),
-    sliderStylesViewModel: SliderStylesViewModel = hiltViewModel()
+    sliderStylesViewModel: SliderStylesViewModel = hiltViewModel(),
+    notificationStylesViewModel: NotificationStylesViewModel = hiltViewModel(),
+    materialStylesViewModel: MaterialStylesViewModel = hiltViewModel()
 ) {
     val spec by detailViewModel.spec.collectAsState()
 
@@ -160,6 +166,8 @@ fun ComponentDetailScreen(
                     sensorStylesViewModel,
                     cameraStylesViewModel,
                     sliderStylesViewModel,
+                    notificationStylesViewModel,
+                    materialStylesViewModel,
                     onRelatedComponentClick
                 )
             }
@@ -198,6 +206,8 @@ private fun ComponentDetailContent(
     sensorStylesViewModel: SensorStylesViewModel,
     cameraStylesViewModel: CameraStylesViewModel,
     sliderStylesViewModel: SliderStylesViewModel,
+    notificationStylesViewModel: NotificationStylesViewModel,
+    materialStylesViewModel: MaterialStylesViewModel,
     onRelatedComponentClick: (String) -> Unit
 ) {
     Column {
@@ -521,6 +531,18 @@ private fun ComponentDetailContent(
 
                 SectionHeader("Live Preview")
                 SliderStylesShowcase(state = state, viewModel = sliderStylesViewModel)
+            }
+            spec.id == "notification-custom-styles" -> {
+                val state by notificationStylesViewModel.state.collectAsState()
+
+                SectionHeader("Live Preview")
+                NotificationStylesShowcase(state = state, viewModel = notificationStylesViewModel)
+            }
+            spec.id == "material-custom-styles" -> {
+                val state by materialStylesViewModel.state.collectAsState()
+
+                SectionHeader("Live Preview")
+                MaterialStylesShowcase(state = state, viewModel = materialStylesViewModel)
             }
             GenericLivePreviewRegistry.previews.containsKey(spec.id) -> {
                 // Self-contained preview composables (own local state) for categories
