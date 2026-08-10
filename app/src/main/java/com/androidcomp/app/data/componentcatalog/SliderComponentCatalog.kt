@@ -139,5 +139,83 @@ object SliderComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(basicSlider, rangeSlider)
+    private val sliderCustomStyles = ComponentSpec(
+        id = "slider-custom-styles",
+        category = ComponentCategory.SLIDERS,
+        title = "Custom Slider Styles",
+        overview = "Five fully custom-designed sliders beyond the standard Slider/RangeSlider — a " +
+            "vertical volume control, a two-thumb range slider with floating value bubbles, a " +
+            "discrete slider with tick marks and a spring snap, a horizontal gradient-track slider, " +
+            "and a circular dial you drag around like a knob. Drag each one to see it animate, and " +
+            "copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun CircularDialSlider(value: Float, onValueChange: (Float) -> Unit) {
+                    val animatedValue by animateFloatAsState(value, tween(200))
+
+                    Box(
+                        Modifier
+                            .size(140.dp)
+                            .pointerInput(Unit) {
+                                detectDragGestures { change, _ ->
+                                    val center = Offset(size.width / 2f, size.height / 2f)
+                                    val angleRad = atan2(
+                                        change.position.y - center.y,
+                                        change.position.x - center.x
+                                    )
+                                    var angleDeg = Math.toDegrees(angleRad.toDouble()).toFloat() + 90f
+                                    if (angleDeg < 0f) angleDeg += 360f
+                                    onValueChange((angleDeg / 360f) * 100f)
+                                }
+                            }
+                    ) {
+                        Canvas(Modifier.size(140.dp)) {
+                            drawArc(trackColor, -90f, 360f, useCenter = false, style = Stroke(12.dp.toPx()))
+                            drawArc(
+                                activeColor, -90f, 360f * (animatedValue / 100f),
+                                useCenter = false, style = Stroke(12.dp.toPx())
+                            )
+                        }
+                        Text("${'$'}{animatedValue.roundToInt()}")
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("value / onValueChange", "Float, (Float) -> Unit", "required", "Hoisted value and callback driving each custom design, mirroring the standard `Slider` contract."),
+            ComponentProperty("low / high", "Float, Float", "required", "Current range endpoints for the bubble range slider, updated together via a single callback."),
+            ComponentProperty("stepCount", "Int", "4", "Number of discrete tick positions the stepped slider snaps between."),
+            ComponentProperty("drag angle (dial)", "Float via atan2", "n/a", "Angle computed from the touch point relative to the dial's center, mapped to a 0-100 value."),
+            ComponentProperty("animateFloatAsState / animateDpAsState", "State<Float> / State<Dp>", "n/a", "Smooths thumb position, fill height, and snap transitions after each drag update.")
+        ),
+        events = listOf("onValueChange / onRangeChange — fired continuously as the user drags each custom slider's thumb, track, or dial."),
+        bestPractices = listOf(
+            "Compute drag fractions from the live pointer position (`change.position`) inside `pointerInput`/`detectDragGestures` rather than from `dragAmount` deltas, to avoid drift over a long gesture.",
+            "Animate the visual thumb/fill position with `animateFloatAsState`/`animateDpAsState` even though the underlying value updates instantly, so rapid drags still read as smooth motion.",
+            "Coerce all custom drag math into the valid range (`coerceIn`) before calling back into state, since raw pointer coordinates can exceed the track bounds."
+        ),
+        commonMistakes = listOf(
+            "Reading `size` inside `pointerInput` only once and caching it, which breaks after a configuration change or layout resize.",
+            "Forgetting `import androidx.compose.runtime.getValue` when destructuring an `animateFloatAsState`/`animateDpAsState` result with `by`, causing a compile error.",
+            "Computing the dial's angle without normalizing negative `atan2` output to 0-360 degrees, producing a value that jumps discontinuously at the top of the circle."
+        ),
+        accessibilityNotes = listOf(
+            "None of these custom-drawn sliders get automatic `ProgressBarRangeInfo` semantics like the Material `Slider` does — add `Modifier.semantics { progressBarRangeInfo = ProgressBarRangeInfo(...) }` for TalkBack support.",
+            "Keep the draggable hit area at least 48x48dp even when the visible track or dial is drawn thinner, so the touch target still meets minimum size guidance.",
+            "For the circular dial, consider exposing an alternate stepper (plus/minus buttons) since a drag-around gesture is difficult for switch-access and some motor-impaired users."
+        ),
+        performanceNotes = listOf(
+            "`detectDragGestures`/`detectHorizontalDragGestures` re-create their lambda closures on every recomposition unless keyed with `pointerInput(Unit)` or a stable key — keep the key stable to avoid re-registering the gesture detector.",
+            "Prefer drawing the circular dial's arc and knob directly in a single `Canvas` pass over layering multiple animated `Box` composables, which is cheaper for a continuously updating drag gesture.",
+            "Keep `animateFloatAsState`/`animateDpAsState` targets derived from simple primitives (not freshly-allocated objects) so the animation system can diff cheaply on each drag frame."
+        ),
+        relatedComponentIds = listOf("slider-basic", "slider-range"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(basicSlider, rangeSlider, sliderCustomStyles)
 }

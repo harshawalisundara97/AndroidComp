@@ -118,5 +118,68 @@ object ImageComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(localImage, asyncImage)
+    private val imageCustomStyles = ComponentSpec(
+        id = "image-custom-styles",
+        category = ComponentCategory.IMAGES,
+        title = "Custom Image Treatments",
+        overview = "Five common image UI patterns built on placeholders — a shimmer loading " +
+            "sweep, a tap-to-zoom viewer, an avatar with an animated status dot, a gradient " +
+            "scrim with a caption overlay, and a drag-controlled before/after comparison " +
+            "slider. Interact with each below and copy its Compose code.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun ShimmerLoadingPlaceholder() {
+                    val transition = rememberInfiniteTransition()
+                    val shimmerOffset by transition.animateFloat(
+                        initialValue = -1f,
+                        targetValue = 2f,
+                        animationSpec = infiniteRepeatable(tween(1200, easing = LinearEasing))
+                    )
+
+                    Box(
+                        Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    colors = listOf(Color(0xFFE9EAEE), Color(0xFFF6F7F9), Color(0xFFE9EAEE)),
+                                    start = Offset(shimmerOffset * 300f, 0f),
+                                    end = Offset(shimmerOffset * 300f + 300f, 300f)
+                                )
+                            )
+                    )
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("rememberInfiniteTransition()", "InfiniteTransition", "n/a", "Drives the shimmer's continuously looping gradient sweep offset."),
+            ComponentProperty("graphicsLayer { scaleX/scaleY }", "Float", "1f", "Scales the tap-to-zoom placeholder on the compositor without a layout pass."),
+            ComponentProperty("detectHorizontalDragGestures", "PointerInputScope extension", "n/a", "Drives the before/after slider's clip fraction from real horizontal drag deltas."),
+            ComponentProperty("Brush.verticalGradient", "Brush", "n/a", "Produces the bottom scrim so the overlaid caption stays legible on any image.")
+        ),
+        events = listOf("onToggle / onTap — fired to toggle zoom or cycle the avatar status.", "onFractionChange — fired continuously while dragging the comparison slider."),
+        bestPractices = listOf(
+            "Constrain shimmer and other infinite animations to only run while their content is actually loading, not indefinitely once real content is shown.",
+            "Coerce the comparison slider's fraction to [0f, 1f] so a fast drag can't push the handle past the image bounds."
+        ),
+        commonMistakes = listOf(
+            "Leaving an infiniteRepeatable shimmer running behind content that has already loaded, wasting battery and compositor work.",
+            "Building the before/after slider by measuring pixel widths only once instead of reading live constraints (BoxWithConstraints), which breaks on rotation or resizing."
+        ),
+        accessibilityNotes = listOf(
+            "The status dot's color change alone isn't enough to convey status — pair with a contentDescription or a label users can query via TalkBack.",
+            "A drag-only comparison slider should also support tapping to jump the divider to that position, so it isn't drag-only for motor-impaired users."
+        ),
+        performanceNotes = listOf(
+            "Prefer graphicsLayer over animating layout-affecting properties (size/padding) for the zoom effect to avoid extra measure passes.",
+            "The shimmer gradient's Brush should be recreated only from remembered/animated values, not rebuilt with new Offset objects that break animation smoothness."
+        ),
+        relatedComponentIds = listOf("image-painter-resource", "image-async"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(localImage, asyncImage, imageCustomStyles)
 }

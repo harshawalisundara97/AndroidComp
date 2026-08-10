@@ -150,5 +150,73 @@ object MapComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(googleMapCompose, markerCamera)
+    private val mapCustomStyles = ComponentSpec(
+        id = "map-custom-styles",
+        category = ComponentCategory.MAPS,
+        title = "Custom Map UI Styles",
+        overview = "Five hand-designed map-adjacent UI pieces beyond the raw Google Map surface " +
+            "— a bouncing custom pin marker, a location card with a distance badge, a route " +
+            "summary card, a Standard/Satellite style toggle, and a horizontally scrollable " +
+            "nearby-places list. All backgrounds are colored placeholder boxes with mock data — " +
+            "no Maps SDK is involved — so they can be composed around a real GoogleMap or used " +
+            "standalone in mockups and design reviews.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun MapPinMarker(dropTrigger: Int, onTap: () -> Unit) {
+                    var animateIn by remember { mutableStateOf(false) }
+                    LaunchedEffect(dropTrigger) { animateIn = false; animateIn = true }
+
+                    val pinScale by animateFloatAsState(
+                        targetValue = if (animateIn) 1f else 0f,
+                        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                    )
+
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(160.dp)
+                            .background(Color(0xFFD8E8DD))
+                            .clickable { onTap() }
+                    ) {
+                        Canvas(Modifier.size(36.dp, 46.dp).graphicsLayer { scaleX = pinScale; scaleY = pinScale }) {
+                            drawPath(teardropPath, color = Color(0xFFE53935))
+                        }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("dropTrigger", "Int", "0", "Incrementing counter that re-fires the pin's spring drop animation via LaunchedEffect(dropTrigger)."),
+            ComponentProperty("isSatelliteStyle", "Boolean", "false", "Drives the Standard/Satellite segmented toggle and the animated placeholder background color."),
+            ComponentProperty("onTap / onStyleChange", "() -> Unit / (Boolean) -> Unit", "required", "Hoisted callbacks so the ViewModel owns the animation-triggering state.")
+        ),
+        events = listOf(
+            "onTap — fired when the placeholder map is tapped, re-triggering the pin drop bounce.",
+            "onStyleChange — fired when Standard or Satellite is tapped in the segmented control."
+        ),
+        bestPractices = listOf(
+            "Drive one-shot animations like the pin drop from a counter/trigger in state rather than a plain Boolean, so repeated taps always replay the animation.",
+            "Keep placeholder map colors and real MapProperties.mapType in sync if this UI is later wired to an actual GoogleMap composable."
+        ),
+        commonMistakes = listOf(
+            "Toggling animateIn directly on click without resetting it first — LaunchedEffect(dropTrigger) with a reset-then-set sequence is what makes repeat taps replay the bounce.",
+            "Hardcoding the segmented indicator's offset in dp without deriving it from the same width used by each segment, causing misalignment if segment text changes."
+        ),
+        accessibilityNotes = listOf(
+            "The distance badge and rating text must not be color-only signals — pair color with the numeric text as already done here.",
+            "Segmented toggle touch targets are 92x32dp within a 48dp-tall row; ensure the full row height meets the 48dp minimum touch target."
+        ),
+        performanceNotes = listOf(
+            "NearbyPlacesRow uses a plain Row + horizontalScroll for a handful of items; switch to LazyRow if the place list grows large.",
+            "animateColorAsState/animateDpAsState on the style toggle are cheap; avoid adding per-frame Canvas redraws to the placeholder background."
+        ),
+        relatedComponentIds = listOf("map-google", "map-marker-camera"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(googleMapCompose, markerCamera, mapCustomStyles)
 }

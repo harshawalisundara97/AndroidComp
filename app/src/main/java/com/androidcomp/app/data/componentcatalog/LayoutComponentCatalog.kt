@@ -146,5 +146,59 @@ object LayoutComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(weightedRow, boxStack)
+    private val layoutCustomStyles = ComponentSpec(
+        id = "layout-custom-styles",
+        category = ComponentCategory.LAYOUTS,
+        title = "Custom Layout Patterns",
+        overview = "Five hand-built layout interactions beyond basic Row/Column/Box arrangement — " +
+            "a collapsing header, a staggered grid, a swipeable card stack, an expandable accordion, " +
+            "and a sticky-header grouped list. Each responds to real touch input (drag, tap, scroll) " +
+            "with genuine Compose animation. Copy the code for any pattern to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun ExpandableAccordionLayout(expandedIndex: Int, onToggle: (Int) -> Unit) {
+                    sections.forEachIndexed { index, (title, body) ->
+                        val expanded = expandedIndex == index
+                        Column {
+                            Row(Modifier.clickable { onToggle(index) }) { Text(title) }
+                            AnimatedVisibility(visible = expanded, enter = expandVertically() + fadeIn()) {
+                                Text(body)
+                            }
+                        }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("expandedAccordionIndex", "Int", "n/a", "Index of the currently open accordion section; -1 means all collapsed."),
+            ComponentProperty("onToggle", "(Int) -> Unit", "n/a", "Called when a section header is tapped; toggles that section open/closed."),
+            ComponentProperty("drag gesture state", "Modifier.pointerInput + detectHorizontalDragGestures", "n/a", "Drives the swipeable card stack's live offset and rotation."),
+            ComponentProperty("stickyHeader", "LazyListScope.stickyHeader (ExperimentalFoundationApi)", "n/a", "Pins a section header at the top of the list while its items scroll beneath it.")
+        ),
+        events = listOf("onToggle(index) — fired when an accordion header is tapped."),
+        bestPractices = listOf(
+            "Prefer graphicsLayer for drag/scale transforms (card stack, collapsing header) so animation runs on the compositor, not layout.",
+            "Keep only one accordion section open at a time for scannability, driven by a single expandedIndex rather than per-item booleans."
+        ),
+        commonMistakes = listOf(
+            "Forgetting @OptIn(ExperimentalFoundationApi::class) when using stickyHeader inside a LazyColumn.",
+            "Not resetting a dragged card stack's offset back to zero after a drag that didn't cross the dismiss threshold, leaving it stuck off-center."
+        ),
+        accessibilityNotes = listOf(
+            "Accordion headers should expose expanded/collapsed state via semantics (e.g. Modifier.semantics { stateDescription = ... }) for screen reader users.",
+            "Swipe-to-dismiss interactions need a non-gesture fallback (e.g. a button) for users who cannot perform drag gestures."
+        ),
+        performanceNotes = listOf(
+            "LazyVerticalStaggeredGrid and LazyColumn only compose visible items, so these patterns scale to long lists without added memory cost.",
+            "Avoid recomposing the entire accordion list on every drag frame — scope animated state (like card offset) to the smallest composable possible."
+        ),
+        relatedComponentIds = listOf("layout-row-weight", "layout-box-stack"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(weightedRow, boxStack, layoutCustomStyles)
 }

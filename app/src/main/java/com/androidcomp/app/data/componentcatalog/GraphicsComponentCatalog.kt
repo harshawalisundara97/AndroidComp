@@ -130,5 +130,62 @@ object GraphicsComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(canvas, drawBehind)
+    private val graphicsCustomStyles = ComponentSpec(
+        id = "graphics-custom-styles",
+        category = ComponentCategory.GRAPHICS,
+        title = "Custom Graphics Styles",
+        overview = "Five custom-drawn Canvas graphics beyond basic shapes — an animated gradient " +
+            "mesh blob, a particle burst effect, a hand-drawn signature-style path animation, " +
+            "a radial pulse ripple, and a custom bar chart with animated bar growth. Tap the " +
+            "controls below each one to trigger its animation, and copy its Compose code to " +
+            "reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun RadialPulseRipple(trigger: Int, onTap: () -> Unit) {
+                    val progress = remember { Animatable(0f) }
+                    LaunchedEffect(trigger) {
+                        progress.snapTo(0f)
+                        progress.animateTo(1f, tween(900, easing = LinearOutSlowInEasing))
+                    }
+                    Canvas(Modifier.size(120.dp).clickable(onClick = onTap)) {
+                        drawCircle(
+                            color = Color(0xFF2F6FED).copy(alpha = 1f - progress.value),
+                            radius = size.minDimension / 2 * progress.value
+                        )
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("trigger", "Int", "required", "Incrementing counter used as an Animatable/LaunchedEffect key to replay an animation on each tap."),
+            ComponentProperty("Animatable<Float>", "Animatable", "n/a", "Drives smooth interpolation for ripple radius, path draw progress, and bar heights."),
+            ComponentProperty("Brush.radialGradient / linearGradient", "Brush", "n/a", "Used for the gradient mesh blob and bar chart fills."),
+            ComponentProperty("Path + PathMeasure", "Path/PathMeasure", "n/a", "Used by the signature-style design to reveal a stroke progressively along its length.")
+        ),
+        events = listOf("onTap / onReplay — fired by each design's control to restart or advance its Canvas animation."),
+        bestPractices = listOf(
+            "Use `Animatable` with `LaunchedEffect(trigger)` for one-shot replayable effects (ripple, particle burst) rather than `animateFloatAsState`, which doesn't restart cleanly on the same target value.",
+            "Precompute static geometry (Path objects, gradient Brushes) outside the draw call with `remember` so only the animated parameters change per frame."
+        ),
+        commonMistakes = listOf(
+            "Allocating a new Brush or Path inside the Canvas draw lambda every frame instead of remembering it, causing unnecessary garbage collection during animation.",
+            "Using `animateFloatAsState` for a repeatable trigger-based effect, which silently no-ops if the target value doesn't change between taps."
+        ),
+        accessibilityNotes = listOf(
+            "Purely decorative Canvas effects (particle burst, ripple) need no semantics, but any data-bearing drawing like the bar chart should expose a text alternative via `Modifier.semantics` or an adjacent Text summary.",
+            "Respect system-level reduced-motion preferences by shortening or skipping elaborate particle/ripple animations when `Settings.Global.ANIMATOR_DURATION_SCALE` is 0."
+        ),
+        performanceNotes = listOf(
+            "Particle-burst-style effects should cap particle count and reuse a single `Canvas` draw pass rather than composing many individual particle composables.",
+            "`PathMeasure` calculations for the signature-draw effect are relatively expensive — compute the segment once per frame from the interpolated progress, not the full path repeatedly."
+        ),
+        relatedComponentIds = listOf("graphics-canvas", "graphics-drawbehind"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(canvas, drawBehind, graphicsCustomStyles)
 }

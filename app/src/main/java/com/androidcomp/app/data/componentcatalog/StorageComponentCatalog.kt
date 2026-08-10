@@ -157,5 +157,67 @@ object StorageComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(preferencesDataStore, room)
+    private val storageCustomStyles = ComponentSpec(
+        id = "storage-custom-styles",
+        category = ComponentCategory.STORAGE,
+        title = "Custom Storage Displays",
+        overview = "Five fully custom-designed storage/file UI patterns — a segmented usage " +
+            "bar, an animated upload progress card, a tappable sync status indicator, a file " +
+            "type icon list, and a cache-clear card whose size counts down — all built with " +
+            "mock data and genuine Compose animations, no real file or network APIs involved. " +
+            "Tap each one below to see it animate, and copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun StorageUsageBar() {
+                    var started by remember { mutableStateOf(false) }
+                    LaunchedEffect(Unit) { started = true }
+
+                    Row(Modifier.fillMaxWidth().height(14.dp).clip(RoundedCornerShape(8.dp))) {
+                        segments.forEach { segment ->
+                            val fraction by animateFloatAsState(
+                                targetValue = if (started) segment.fraction else 0f,
+                                animationSpec = tween(700)
+                            )
+                            Box(Modifier.fillMaxHeight().weight(fraction).background(segment.color))
+                        }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("uploadState", "UploadState (IDLE/UPLOADING/DONE)", "IDLE", "Drives the Upload Progress Card's button, progress bar visibility, and fill color."),
+            ComponentProperty("uploadProgress", "Float 0f..1f", "0f", "Simulated upload fraction, advanced by a coroutine delay() loop in the ViewModel."),
+            ComponentProperty("syncStatus", "SyncStatus (SYNCED/SYNCING/OFFLINE)", "SYNCED", "Cycled on tap; SYNCING drives an infinite rotation animation on the icon."),
+            ComponentProperty("cacheSizeMb", "Int", "245", "Displayed cache size, animated down to 0 via AnimatedContent + a stepped coroutine loop on Clear Cache.")
+        ),
+        events = listOf(
+            "onStartUpload / onCancelUpload — drives the Upload Progress Card's simulated transfer.",
+            "onCycleSyncStatus — tap on the Sync Status Indicator advances Synced → Syncing → Offline → Synced.",
+            "onClearCache — animates the cache size counting down to 0 MB over a short duration."
+        ),
+        bestPractices = listOf(
+            "Drive simulated async operations (upload, cache clear) from viewModelScope.launch with delay(), not from Composable-level LaunchedEffect side effects, so state survives recomposition.",
+            "Use AnimatedContent for discrete value changes (sync label, cache number) and animateFloatAsState/animateColorAsState for continuous ones (progress fill, track color) rather than mixing approaches inconsistently."
+        ),
+        commonMistakes = listOf(
+            "Letting a fake progress/countdown loop keep running after the user cancels or navigates away, instead of checking state before each step as this ViewModel does.",
+            "Using flat percentages without also updating an accessible text label (e.g. relying on bar width alone to convey upload progress)."
+        ),
+        accessibilityNotes = listOf(
+            "The Sync Status Indicator and file rows should expose their current label via semantics/contentDescription, not rely on icon shape or color alone to convey state.",
+            "Ensure the Clear Cache and Cancel buttons remain at least 48x48dp tappable targets even though they're rendered as compact TextButton/OutlinedButton."
+        ),
+        performanceNotes = listOf(
+            "The sync icon's spin uses rememberInfiniteTransition, which is cheap for a single indicator; avoid running multiple infinite transitions per list item at scale.",
+            "Progress and countdown loops use short delay() steps (40–120ms) rather than a single long animation, keeping each recomposition lightweight."
+        ),
+        relatedComponentIds = listOf("storage-datastore", "storage-room"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(preferencesDataStore, room, storageCustomStyles)
 }

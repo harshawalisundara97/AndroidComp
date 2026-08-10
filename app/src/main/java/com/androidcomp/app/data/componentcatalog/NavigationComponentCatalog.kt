@@ -132,5 +132,65 @@ object NavigationComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(bottomBar, navHost)
+    private val navCustomStyles = ComponentSpec(
+        id = "nav-custom-styles",
+        category = ComponentCategory.NAVIGATION,
+        title = "Custom Navigation Patterns",
+        overview = "Five hand-built navigation interactions beyond the default NavigationBar — " +
+            "a morphing pill indicator bottom nav, sliding underline tabs, a segmented control, " +
+            "a floating pill nav, and a vertical rail for tablet/landscape layouts. Each animates " +
+            "its selection state with genuine Compose motion. Copy the code for any pattern to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun MorphingIndicatorBottomNav(selectedIndex: Int, onSelect: (Int) -> Unit) {
+                    BoxWithConstraints(Modifier.fillMaxWidth().height(64.dp)) {
+                        val itemWidth = maxWidth / icons.size
+                        val indicatorOffset by animateDpAsState(
+                            itemWidth * selectedIndex,
+                            animationSpec = spring(dampingRatio = 0.7f)
+                        )
+                        Box(
+                            Modifier
+                                .width(itemWidth)
+                                .graphicsLayer { translationX = indicatorOffset.toPx() }
+                                .clip(RoundedCornerShape(50))
+                                .background(primary)
+                        )
+                        Row { icons.forEachIndexed { index, icon -> /* tap -> onSelect(index) */ } }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("selectedIndex", "Int", "0", "Index of the currently selected destination/tab/segment."),
+            ComponentProperty("onSelect", "(Int) -> Unit", "required", "Called with the tapped index; hoist and drive selectedIndex from it."),
+            ComponentProperty("indicator offset", "State<Dp> via animateDpAsState", "n/a", "Computed as itemWidth * selectedIndex inside a BoxWithConstraints to glide the indicator between items."),
+            ComponentProperty("BoxWithConstraints", "Composable", "n/a", "Used to measure available width and divide it evenly per item so the indicator offset scales with any screen size.")
+        ),
+        events = listOf("onSelect(index) — fired when a nav item, tab, segment, or rail destination is tapped."),
+        bestPractices = listOf(
+            "Compute the sliding indicator's target offset from measured item width (BoxWithConstraints) rather than a hardcoded Dp, so it adapts to any screen size.",
+            "Use spring() for the morphing pill indicator to give it a natural, slightly bouncy glide; use tween() for simpler underline/segment slides."
+        ),
+        commonMistakes = listOf(
+            "Animating the indicator's position with Modifier.offset instead of graphicsLayer translationX, which re-triggers layout on every frame.",
+            "Hardcoding a fixed indicator width that doesn't match the actual item width, causing visible misalignment on different screen sizes."
+        ),
+        accessibilityNotes = listOf(
+            "Each nav item must expose its selected state via semantics (e.g. Role.Tab with selected) so screen readers announce the current destination.",
+            "Icon-only nav patterns (floating pill, rail) still need a contentDescription per icon since no text label is visible."
+        ),
+        performanceNotes = listOf(
+            "animateDpAsState/animateColorAsState per item is cheap for the 3-4 item counts used here; avoid scaling this pattern to long item lists.",
+            "graphicsLayer-based translation keeps the sliding indicator on the compositor thread, avoiding unnecessary recomposition of surrounding content."
+        ),
+        relatedComponentIds = listOf("nav-bottom-bar"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(bottomBar, navHost, navCustomStyles)
 }

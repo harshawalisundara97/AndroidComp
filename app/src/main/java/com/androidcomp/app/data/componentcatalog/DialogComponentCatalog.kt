@@ -138,5 +138,61 @@ object DialogComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(alertDialog, fullScreenDialog)
+    private val dialogCustomStyles = ComponentSpec(
+        id = "dialog-custom-styles",
+        category = ComponentCategory.DIALOGS,
+        title = "Custom Dialog Styles",
+        overview = "Five fully custom-designed dialogs beyond the standard AlertDialog — a " +
+            "bottom sheet action list, an icon-led confirmation dialog, a success celebration " +
+            "dialog with a delayed checkmark reveal, an input dialog with a text field, and a " +
+            "full-bleed image dialog. Tap the button below each one to see it open, and copy " +
+            "its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun IconConfirmationDialog(visible: Boolean, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+                    if (visible) {
+                        AlertDialog(
+                            onDismissRequest = onDismiss,
+                            icon = { Icon(Icons.Outlined.Info, contentDescription = null) },
+                            title = { Text("Delete item?") },
+                            text = { Text("This can't be undone.") },
+                            confirmButton = { TextButton(onClick = onConfirm) { Text("Delete") } },
+                            dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+                        )
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("visible", "Boolean", "required", "Controls whether each dialog is currently shown, hoisted in a single state class."),
+            ComponentProperty("onShow / onDismiss", "() -> Unit", "required", "Toggle the corresponding visibility flag in the ViewModel."),
+            ComponentProperty("inputText", "String", "\"\"", "Backing text for the input dialog's TextField, updated via onTextChange."),
+            ComponentProperty("DialogProperties(usePlatformDefaultWidth = false)", "DialogProperties", "n/a", "Used by the full-bleed image dialog so its content can fill the screen width.")
+        ),
+        events = listOf("onShow/onDismiss/onSave/onConfirm — fired by each design's own buttons to drive its show/hide/commit state."),
+        bestPractices = listOf(
+            "Keep each dialog's visibility as an independent Boolean field on a single showcase state object rather than one shared 'currentDialog' enum, so multiple demos don't fight over one flag.",
+            "Use `ModalBottomSheet` for action lists with more than 2-3 options instead of cramming them into an AlertDialog."
+        ),
+        commonMistakes = listOf(
+            "Forgetting `DialogProperties(usePlatformDefaultWidth = false)` on the full-bleed image dialog, leaving unwanted margins around content meant to fill the screen.",
+            "Not resetting input dialog text state on dismiss, so reopening it shows stale text from a previous, cancelled attempt."
+        ),
+        accessibilityNotes = listOf(
+            "Custom Dialogs (not AlertDialog) don't get automatic title-announcement semantics — ensure the first focusable element is a clear heading for TalkBack.",
+            "The success celebration dialog's delayed icon reveal should still be dismissible immediately; don't block the dismiss action behind the animation finishing."
+        ),
+        performanceNotes = listOf(
+            "ModalBottomSheet content composes lazily as it slides in — avoid loading heavy data eagerly before the sheet is actually requested.",
+            "Keep celebratory/animated dialogs' entrance animations short (under ~400ms) so they don't feel like they're blocking the user from proceeding."
+        ),
+        relatedComponentIds = listOf("dialog-alert", "dialog-fullscreen"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(alertDialog, fullScreenDialog, dialogCustomStyles)
 }

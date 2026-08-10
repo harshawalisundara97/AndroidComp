@@ -163,5 +163,87 @@ object CameraComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(previewView, imageCapture)
+    private val cameraCustomStyles = ComponentSpec(
+        id = "camera-custom-styles",
+        category = ComponentCategory.CAMERA,
+        title = "Custom Camera Control Styles",
+        overview = "Five fully custom-designed camera control UI patterns — a capture button with an " +
+            "expanding press ring, a rule-of-thirds viewfinder grid overlay, a cycling flash mode " +
+            "toggle, a sliding Photo/Video segmented switcher, and an animated 3-2-1 shutter " +
+            "countdown. This is a UI-mockup-only showcase: each design draws a dark placeholder Box " +
+            "standing in for a live camera feed, with real interactive chrome/controls layered on " +
+            "top — there is no real CameraX wiring or camera permission request here, so these " +
+            "composables can be reused as-is and simply layered over a real `PreviewView` later.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun CaptureButtonWithPressRing(pressed: Boolean, onPressedChange: (Boolean) -> Unit) {
+                    val interactionSource = remember { MutableInteractionSource() }
+                    val isPressed by interactionSource.collectIsPressedAsState()
+
+                    val ringScale by animateFloatAsState(if (isPressed) 1.7f else 1f, tween(350))
+                    val ringAlpha by animateFloatAsState(if (isPressed) 0f else 0.55f, tween(350))
+                    val buttonScale by animateFloatAsState(
+                        if (isPressed) 0.88f else 1f,
+                        spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                    )
+
+                    Box(contentAlignment = Alignment.Center) {
+                        Box(Modifier.size(66.dp * ringScale).border(2.dp, Color.White.copy(alpha = ringAlpha), CircleShape))
+                        Box(
+                            Modifier
+                                .size(66.dp)
+                                .border(3.dp, Color.White, CircleShape)
+                                .clickable(interactionSource, indication = null) { onPressedChange(!pressed) }
+                        ) {
+                            Box(Modifier.size(48.dp * buttonScale).background(Color.White, CircleShape))
+                        }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("pressed / gridVisible / flashMode / captureMode", "Boolean / Boolean / Int / Int", "false / true / 0 / 0", "Simple hoisted state per design — press state, grid visibility, 3-state flash mode, and 2-state photo/video mode."),
+            ComponentProperty("countdownValue", "Int?", "null", "Current 3-2-1 countdown tick for the shutter countdown design, driven by a coroutine `delay` loop in the ViewModel."),
+            ComponentProperty("justCaptured", "Boolean", "false", "Briefly true right after the countdown finishes, to show a checkmark 'capture' flash before resetting."),
+            ComponentProperty("interactionSource", "MutableInteractionSource", "remember { MutableInteractionSource() }", "Feeds `collectIsPressedAsState()` so the press-ring button can react to press state directly, independent of a click callback.")
+        ),
+        events = listOf(
+            "onPressedChange(Boolean) — fired when the shutter button is tapped.",
+            "onToggle() — fired when the viewfinder grid overlay is tapped to show/hide the grid.",
+            "onCycle() — fired when the flash mode control is tapped, advancing Off -> Auto -> On -> Off.",
+            "onModeChange(Int) — fired when Photo or Video is tapped on the segmented switcher.",
+            "onStart() — fired when the countdown timer icon is tapped, kicking off the 3-2-1 sequence."
+        ),
+        bestPractices = listOf(
+            "Keep these as pure UI-mockup composables decoupled from CameraX — layer them visually over a real `PreviewView`/`AndroidView` rather than baking capture logic into them.",
+            "Drive the press ring and mode-switcher indicator from animated state (`animateFloatAsState`/`animateDpAsState`) rather than snapping instantly, so the chrome feels native.",
+            "Disable the countdown control's clickable while a countdown is already running to avoid overlapping coroutine loops.",
+            "Use `MutableInteractionSource`/`collectIsPressedAsState` instead of a manual `onPress`/`onRelease` pointer handler for standard press-state animations."
+        ),
+        commonMistakes = listOf(
+            "Wiring these mockups directly to `ImageCapture.takePicture()` calls, which conflates UI styling work with real capture logic and permission handling.",
+            "Forgetting to cancel/guard the countdown coroutine, letting a second tap start a second overlapping countdown loop.",
+            "Hardcoding the segmented switcher's slide distance instead of deriving it from the same `segmentWidth` used to lay out both segments, causing indicator drift if sizes change.",
+            "Using `clickable` without `indication = null` on the press-ring button, causing a double visual feedback (default ripple plus the custom ring animation)."
+        ),
+        accessibilityNotes = listOf(
+            "Give the shutter button a `contentDescription` of \"Take photo\" or \"Take video\" depending on the active mode.",
+            "Announce flash mode changes (\"Flash: Auto\") via `contentDescription` on the icon since the crossfade alone isn't conveyed to TalkBack.",
+            "Ensure the Photo/Video segmented switcher's tap targets are each at least 48x48dp even though the visual pill is narrower.",
+            "For the countdown, consider an accessibility live region announcement (\"3… 2… 1… Captured\") since the large animated number is a purely visual cue."
+        ),
+        performanceNotes = listOf(
+            "The countdown's `delay()`-based coroutine loop only recomposes the small `Text`/`AnimatedContent` region, not the whole showcase — keep state scoped that way.",
+            "Prefer `Canvas`/`drawLine` for the grid overlay over stacking multiple thin `Box` dividers, which is cheaper to draw and animate.",
+            "`animateDpAsState`/`animateFloatAsState` allocate a single `Animatable` under the hood; avoid recreating these composables unnecessarily inside frequently-recomposing lists."
+        ),
+        relatedComponentIds = listOf("camera-preview", "camera-imagecapture"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(previewView, imageCapture, cameraCustomStyles)
 }

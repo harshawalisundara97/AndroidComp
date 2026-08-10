@@ -121,5 +121,74 @@ object GestureComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(tapGestures, dragGestures)
+
+    private val gestureCustomStyles = ComponentSpec(
+        id = "gesture-custom-styles",
+        category = ComponentCategory.GESTURES,
+        title = "Custom Gesture Interaction Patterns",
+        overview = "Five hand-built gesture interactions beyond the basics — swipe-to-dismiss, " +
+            "pinch-to-zoom, pull-to-refresh, long-press context menus, and double-tap-to-like — " +
+            "each combining a low-level pointer-input gesture detector with a Compose animation " +
+            "to give the interaction real, tactile feedback.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                val offsetX = remember { Animatable(0f) }
+
+                Box(
+                    modifier = Modifier
+                        .graphicsLayer { translationX = offsetX.value }
+                        .pointerInput(Unit) {
+                            detectHorizontalDragGestures(
+                                onDragEnd = {
+                                    scope.launch {
+                                        if (abs(offsetX.value) > 260f) {
+                                            offsetX.animateTo(900f, tween(250))
+                                            dismissed = true
+                                        } else {
+                                            offsetX.animateTo(0f, spring())
+                                        }
+                                    }
+                                },
+                                onHorizontalDrag = { change, dragAmount ->
+                                    change.consume()
+                                    scope.launch { offsetX.snapTo(offsetX.value + dragAmount) }
+                                }
+                            )
+                        }
+                )
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("detectTransformGestures", "suspend PointerInputScope.((Offset, Float, Float) -> Unit)", "n/a", "Reports pan, zoom, and rotation deltas for multi-touch pinch gestures."),
+            ComponentProperty("detectHorizontalDragGestures / detectVerticalDragGestures", "suspend PointerInputScope.(...)", "n/a", "Axis-locked drag detectors used for the swipe-to-dismiss and pull-to-refresh demos."),
+            ComponentProperty("Animatable<Float>", "class", "n/a", "Drives the fling-back / dismiss / pull-offset animations with `animateTo`/`snapTo`."),
+            ComponentProperty("AnimatedVisibility", "@Composable", "n/a", "Reveals the long-press context row and the double-tap heart with enter/exit transitions.")
+        ),
+        events = listOf(
+            "onDismissedChange / onTriggerRefresh — hoisted callbacks so each demo's transient gesture state can be reset from a parent."
+        ),
+        bestPractices = listOf(
+            "Clamp pinch-to-zoom scale (e.g. `coerceIn(0.6f, 3f)`) so users can't zoom a view into an unusable or invisible state.",
+            "Always pair a gesture-only interaction with a threshold check (drag distance, pull distance) rather than firing the action on any movement, so accidental touches don't trigger it."
+        ),
+        commonMistakes = listOf(
+            "Forgetting `change.consume()` in a custom drag detector, causing an ancestor `LazyColumn` to scroll simultaneously with the custom gesture.",
+            "Driving drag/pull animations with a mutable `Float` state instead of `Animatable`, which makes the fling-back/reset animation on release much harder to express correctly."
+        ),
+        accessibilityNotes = listOf(
+            "Every gesture-only interaction here (swipe, pinch, pull, long-press, double-tap) needs a discoverable, accessible alternative (buttons, menu items) for users who can't perform the gesture.",
+            "Long-press context menus should also be reachable via `combinedClickable`'s `onLongClick`, which TalkBack can announce, rather than raw `pointerInput` alone."
+        ),
+        performanceNotes = listOf(
+            "Use `Modifier.graphicsLayer` for the translation/scale driven by drag and pinch gestures — it updates the compositor directly without triggering measure/layout on every frame.",
+            "Key `pointerInput` blocks on values that should restart gesture detection (e.g. `refreshing`) but avoid keying on values that change every frame, which would cancel the coroutine constantly."
+        ),
+        relatedComponentIds = listOf("gesture-tap", "gesture-drag"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(tapGestures, dragGestures, gestureCustomStyles)
 }

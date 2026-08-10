@@ -242,5 +242,78 @@ object MaterialComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(card, chip, badge, cardStyles)
+    private val customStyles = ComponentSpec(
+        id = "material-custom-styles",
+        category = ComponentCategory.MATERIAL_COMPONENTS,
+        title = "Custom Material Component Styles",
+        overview = "Five custom-designed general Material Components beyond the standard set — " +
+            "a multi-select filter chip group with animated checkmarks, a FAB that expands into " +
+            "a staggered speed-dial of mini-FABs, a draggable bottom sheet with a pill grab " +
+            "handle, a notification badge that pulses while unread, and an iOS-style segmented " +
+            "button group with a sliding highlight. Tap or drag each demo to see it respond, and " +
+            "copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun SlidingSegmentedButtons(selectedIndex: Int, onSelect: (Int) -> Unit) {
+                    val offsetX by animateDpAsState(segmentWidth * selectedIndex)
+                    Box(Modifier.clip(RoundedCornerShape(14.dp)).background(trackColor)) {
+                        Box(
+                            Modifier
+                                .offset(x = offsetX)
+                                .width(segmentWidth)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(Color.White)
+                        )
+                        Row {
+                            labels.forEachIndexed { index, label ->
+                                Box(Modifier.width(segmentWidth).clickable { onSelect(index) }) {
+                                    Text(label)
+                                }
+                            }
+                        }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("selectedChips / selectedSegment", "Set<String> / Int", "required", "Hoisted selection state driving each design's animated fill and offset."),
+            ComponentProperty("speedDialExpanded", "Boolean", "false", "Toggles the staggered AnimatedVisibility reveal of the 3 mini-FABs."),
+            ComponentProperty("badgeUnread", "Boolean", "true", "Drives the rememberInfiniteTransition pulse animation on the badge dot."),
+            ComponentProperty("dragOffset", "Float (local state)", "0f", "Tracks the bottom sheet handle's vertical drag distance to decide dismissal."),
+            ComponentProperty("onSelect / onToggle", "(Int) -> Unit / () -> Unit", "required", "Callbacks that update the hoisted ViewModel state for each design.")
+        ),
+        events = listOf("onToggle (chip, badge, FAB), onSelect (segmented buttons), onShow/onDismiss (bottom sheet) — fired on tap or drag-release."),
+        bestPractices = listOf(
+            "Drive sliding/offset highlights (segmented buttons, thumb positions) with animateDpAsState instead of manual pixel math so they stay smooth across rapid taps.",
+            "Stagger speed-dial mini-FAB reveals with a small per-item delayMillis so the expansion reads as a sequence rather than a single flat pop.",
+            "Reserve infinite pulse/glow animations (like the unread badge) for states that truly need ongoing attention — stop them once the state is resolved.",
+            "Keep the bottom sheet's dismiss drag threshold generous enough (e.g. 80dp+) to avoid accidental dismissal from small drags."
+        ),
+        commonMistakes = listOf(
+            "Forgetting to coerce drag offsets, letting a bottom sheet handle be dragged upward past its resting position.",
+            "Using Icons.Outlined.* for directional arrows in a speed dial or chip instead of the AutoMirrored variants, breaking RTL layouts.",
+            "Leaving an infinite badge pulse animation running even after the badge is dismissed/read, wasting recomposition cycles.",
+            "Not resetting speed-dial expansion state when the FAB's parent screen is navigated away from, leaving mini-FABs stuck open on return."
+        ),
+        accessibilityNotes = listOf(
+            "Filter chips must expose their selected state (Compose's selected/toggleable modifiers handle this for TalkBack automatically).",
+            "The draggable bottom sheet should also offer a non-drag dismiss path (e.g. a close button or scrim tap) for users who cannot perform drag gestures.",
+            "An unread badge's pulsing motion is decorative only — pair it with a contentDescription like 'Notifications, unread' so the state isn't conveyed by animation alone.",
+            "Segmented buttons should be grouped with a single accessible role so screen readers announce them as one control with 4 selectable options, not 4 separate buttons."
+        ),
+        performanceNotes = listOf(
+            "rememberInfiniteTransition (the pulsing badge) keeps animating for as long as it's composed — gate it behind the unread boolean so it stops once read.",
+            "Prefer animateDpAsState/animateFloatAsState over recomposition-driven offset recalculation for the segmented highlight and speed-dial rotation.",
+            "detectDragGestures on the bottom sheet handle should consume only the pointer events it needs, avoiding interference with nested scrollable content.",
+            "Keep the speed-dial's mini-FAB count small (3-5); more than that is better served by a bottom sheet or menu for both usability and animation cost."
+        ),
+        relatedComponentIds = listOf("material-chip", "material-badge", "material-card-styles"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(card, chip, badge, cardStyles, customStyles)
 }

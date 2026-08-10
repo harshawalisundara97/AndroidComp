@@ -125,5 +125,60 @@ object ProgressComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(circular, linear)
+    private val progressCustomStyles = ComponentSpec(
+        id = "progress-custom-styles",
+        category = ComponentCategory.PROGRESS,
+        title = "Custom Progress Styles",
+        overview = "Five fully custom-designed progress indicators beyond the standard Circular/Linear " +
+            "indicators — dotted step progress, a Canvas-drawn percentage ring, skeleton shimmer " +
+            "loading, a segmented multi-step bar, and an animated liquid wave fill. Tap the controls " +
+            "below each one to see it animate, and copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun CircularPercentageRing(percent: Int, onIncrease: () -> Unit) {
+                    val animatedPercent by animateIntAsState(percent)
+                    val sweep by animateFloatAsState(percent / 100f)
+
+                    Box(contentAlignment = Alignment.Center) {
+                        Canvas(Modifier.size(120.dp)) {
+                            drawArc(trackColor, -90f, 360f, useCenter = false, style = Stroke(12.dp.toPx()))
+                            drawArc(activeColor, -90f, 360f * sweep, useCenter = false, style = Stroke(12.dp.toPx()))
+                        }
+                        Text("${'$'}animatedPercent%")
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("step / totalSteps", "Int", "required", "Current completed count and total dot/segment count for the step-based designs."),
+            ComponentProperty("percent", "Int (0-100)", "required", "Drives the animated sweep angle, center label, and wave fill height."),
+            ComponentProperty("shimmerX animation", "State<Float> via rememberInfiniteTransition", "n/a", "Drifts the shimmer gradient across the skeleton placeholders on an infinite loop."),
+            ComponentProperty("phase animation", "State<Float> via rememberInfiniteTransition", "n/a", "Advances the sine-wave phase for the liquid progress's horizontal drift.")
+        ),
+        events = listOf("onNext/onBack, onIncrease, onAdvance/onReset — fired by each design's control buttons to change the underlying progress value."),
+        bestPractices = listOf(
+            "Drive Canvas-based indicators (ring, wave) from animateFloatAsState/animateIntAsState rather than the raw percent so value jumps still read as smooth motion.",
+            "Keep skeleton shimmer shapes matched to the real content's approximate layout so the loading state doesn't visually 'jump' once data arrives."
+        ),
+        commonMistakes = listOf(
+            "Redrawing the entire Canvas path every frame with expensive allocations instead of reusing a Path object across recompositions.",
+            "Letting a step indicator's dot/segment count diverge from the actual number of steps in the flow it represents."
+        ),
+        accessibilityNotes = listOf(
+            "Canvas-drawn progress conveys no semantics automatically — add `Modifier.semantics { progressBarRangeInfo = ProgressBarRangeInfo(percent / 100f, 0f..1f) }` for TalkBack.",
+            "Skeleton shimmer placeholders should be marked so screen readers announce 'Loading' rather than reading empty/meaningless shapes."
+        ),
+        performanceNotes = listOf(
+            "rememberInfiniteTransition (shimmer, wave drift) keeps animating while composed — dispose or pause offscreen instances in a real list.",
+            "Prefer drawArc/drawPath directly in a Canvas over stacking many small Box gradients, which is cheaper for continuously animating visuals."
+        ),
+        relatedComponentIds = listOf("progress-circular", "progress-linear"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(circular, linear, progressCustomStyles)
 }

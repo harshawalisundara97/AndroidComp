@@ -140,5 +140,63 @@ object SensorComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(accelerometer, proximity)
+    private val sensorCustomStyles = ComponentSpec(
+        id = "sensor-custom-styles",
+        category = ComponentCategory.SENSORS,
+        title = "Custom Sensor Display Styles",
+        overview = "Five custom-designed sensor readouts — a rotating accelerometer gauge, a " +
+            "compass heading dial, a step counter progress ring, a light sensor brightness bar, " +
+            "and a proximity status card. Tap the controls below each one to simulate a new " +
+            "reading, and copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun StepCounterCard(stepCount: Int, stepGoal: Int, onSimulateStep: () -> Unit) {
+                    val progress by animateFloatAsState(stepCount / stepGoal.toFloat())
+                    CircularProgressIndicator(progress = { progress })
+                    Text("${'$'}stepCount / ${'$'}stepGoal steps")
+                    Button(onClick = onSimulateStep) { Text("Simulate Step") }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = """
+            init {
+                viewModelScope.launch {
+                    while (true) {
+                        delay(1500)
+                        _state.value = _state.value.copy(accelerometerAngle = Random.nextFloat() * 360f)
+                    }
+                }
+            }
+        """.trimIndent(),
+        properties = listOf(
+            ComponentProperty("accelerometerAngle / compassHeading", "Float", "0f", "Degrees driving needle/dial rotation, animated with animateFloatAsState/spring()."),
+            ComponentProperty("stepCount / stepGoal", "Int", "required", "Current and target step counts, driving the progress ring's fraction."),
+            ComponentProperty("brightnessLevel", "Float", "0.5f", "0f-1f value driving the light sensor bar's filled width."),
+            ComponentProperty("isNear", "Boolean", "false", "Drives the proximity card's crossfaded near/far icon and label.")
+        ),
+        events = listOf("onSimulateStep / simulateCompassReading / simulateLightReading / toggleProximity — fired by each design's control to produce a new simulated reading."),
+        bestPractices = listOf(
+            "In a real integration, feed these composables from a `SensorEventListener` registered/unregistered in a `DisposableEffect`, replacing the simulate buttons shown here.",
+            "Animate rotation/fill changes with `spring()` rather than snapping instantly, since real sensor data is noisy and abrupt jumps read as broken UI."
+        ),
+        commonMistakes = listOf(
+            "Piping raw, high-frequency sensor callbacks directly into these composables without throttling, causing excessive recomposition.",
+            "Displaying a precise numeric value for sensors (like proximity) that only report coarse near/far states on most hardware."
+        ),
+        accessibilityNotes = listOf(
+            "Gauge/dial/ring readouts convey information visually only — pair each with a text value (as shown) so screen readers can announce the actual reading.",
+            "Avoid relying on animation alone to communicate a changed reading; the accompanying label text should update in sync."
+        ),
+        performanceNotes = listOf(
+            "The accelerometer gauge here updates on a fixed timer for demo purposes; in production, throttle real sensor callbacks to UI-relevant rates (e.g. SENSOR_DELAY_UI) before feeding Compose state.",
+            "Canvas-drawn gauges (accelerometer, compass) should remember static geometry and only animate the rotation/sweep parameter per frame."
+        ),
+        relatedComponentIds = listOf("sensor-accelerometer", "sensor-proximity"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(accelerometer, proximity, sensorCustomStyles)
 }

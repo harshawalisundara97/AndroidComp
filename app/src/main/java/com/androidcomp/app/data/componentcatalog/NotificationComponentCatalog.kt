@@ -130,5 +130,78 @@ object NotificationComponentCatalog {
         minApi = 26
     )
 
-    val all: List<ComponentSpec> = listOf(basicNotification, notificationChannel)
+    private val notificationCustomStyles = ComponentSpec(
+        id = "notification-custom-styles",
+        category = ComponentCategory.NOTIFICATIONS,
+        title = "Custom Notification Styles",
+        overview = "Five fully custom-designed in-app notification patterns beyond the system tray " +
+            "notification — an expandable summary card, a snackbar with an Undo action and a " +
+            "shrinking countdown bar, a badge counter that bounces on increment, a grouped " +
+            "notification stack that fans out on tap, and a toast-style banner with an " +
+            "auto-dismissing progress timer. Tap the controls below each one to see it animate, " +
+            "and copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun ToastProgressBanner(visible: Boolean, onDismiss: () -> Unit) {
+                    AnimatedVisibility(visible = visible, enter = fadeIn(), exit = fadeOut()) {
+                        var progress by remember { mutableFloatStateOf(1f) }
+                        val animatedProgress by animateFloatAsState(progress)
+
+                        LaunchedEffect(visible) {
+                            val total = 3000L
+                            var elapsed = 0L
+                            while (elapsed < total) {
+                                delay(50); elapsed += 50
+                                progress = (1f - elapsed.toFloat() / total).coerceAtLeast(0f)
+                            }
+                            onDismiss()
+                        }
+
+                        Column {
+                            Text("Changes saved successfully")
+                            Box(Modifier.fillMaxWidth(animatedProgress).height(3.dp).background(Success))
+                        }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("expanded / visible", "Boolean", "false", "Drives the expandable card, snackbar, and banner's animated visibility."),
+            ComponentProperty("count", "Int", "0", "Badge counter value; each increment triggers a spring-based bounce via LaunchedEffect(count)."),
+            ComponentProperty("fraction / progress", "Float (0f-1f) via animateFloatAsState", "1f", "Countdown fraction driving the shrinking bar on the Undo snackbar and toast banner."),
+            ComponentProperty("stackExpanded", "Boolean", "false", "Toggles the grouped notification stack between restacked and fanned-out via animateDpAsState.")
+        ),
+        events = listOf(
+            "onToggle/onShow/onDismiss/onUndo/onIncrement — fired by each design's control buttons or auto-dismiss timers to change the underlying state.",
+            "LaunchedEffect(visible) — drives the countdown loop for the Undo snackbar and toast banner, calling onExpire/onDismiss when the timer reaches zero."
+        ),
+        bestPractices = listOf(
+            "Drive shrinking countdown bars from a coroutine loop plus animateFloatAsState so the bar reads as smooth motion rather than discrete jumps.",
+            "Let the user cancel a pending auto-dismiss (Undo) before the LaunchedEffect timer completes, by keying the effect on the visibility flag.",
+            "Use spring() rather than tween() for bounce/fan-out interactions so they feel physical and interruptible."
+        ),
+        commonMistakes = listOf(
+            "Forgetting to reset the countdown fraction/progress back to 1f when the notification is shown again, causing the bar to start already-shrunk.",
+            "Driving the badge bounce directly off the raw count instead of a separate animatable 'bump' value, which prevents the spring from re-triggering on repeated increments.",
+            "Not cancelling the dismiss coroutine when the user taps Undo, so the item is deleted anyway after the timer completes."
+        ),
+        accessibilityNotes = listOf(
+            "Snackbar and toast banners should be announced via `LaunchedEffect` + `SemanticsProperties.LiveRegion` or the platform Snackbar API so TalkBack users are notified even if they're not looking at the screen.",
+            "Keep auto-dismiss timers long enough (3s+) for users with motor or reading impairments to react to the Undo action.",
+            "The bounce badge's number should remain readable at default and enlarged font scale; avoid clipping it inside a fixed-size circle at high Dynamic Type."
+        ),
+        performanceNotes = listOf(
+            "animateContentSize on the expandable card is cheap for text-only content but avoid it around large images/lists — measure cost with layout inspector if used broadly.",
+            "Countdown loops (Undo snackbar, toast banner) using delay(50) run ~60 ticks per 3s; keep the step small enough to look smooth but not so small it churns recomposition unnecessarily.",
+            "Cancel LaunchedEffect countdown coroutines automatically by scoping them to the composable's visibility key, rather than manually starting/stopping background jobs."
+        ),
+        relatedComponentIds = listOf("notification-basic", "notification-channel"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(basicNotification, notificationChannel, notificationCustomStyles)
 }
