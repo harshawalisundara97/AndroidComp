@@ -86,6 +86,16 @@ import com.androidcomp.app.features.notifications.customstyles.NotificationStyle
 import com.androidcomp.app.features.notifications.customstyles.NotificationStylesViewModel
 import com.androidcomp.app.features.materialcomponents.customstyles.MaterialStylesShowcase
 import com.androidcomp.app.features.materialcomponents.customstyles.MaterialStylesViewModel
+import com.androidcomp.app.features.animations.customstyles2.AnimationStyles2Showcase
+import com.androidcomp.app.features.animations.customstyles2.AnimationStyles2ViewModel
+import com.androidcomp.app.features.images.customstyles2.ImageStyles2Showcase
+import com.androidcomp.app.features.images.customstyles2.ImageStyles2ViewModel
+import com.androidcomp.app.features.layouts.customstyles2.LayoutStyles2Showcase
+import com.androidcomp.app.features.layouts.customstyles2.LayoutStyles2ViewModel
+import com.androidcomp.app.features.materialcomponents.customstyles2.MaterialStyles2Showcase
+import com.androidcomp.app.features.materialcomponents.customstyles2.MaterialStyles2ViewModel
+import com.androidcomp.app.features.menus.customstyles2.MenuStyles2Showcase
+import com.androidcomp.app.features.menus.customstyles2.MenuStyles2ViewModel
 
 @Composable
 fun ComponentDetailScreen(
@@ -543,6 +553,36 @@ private fun ComponentDetailContent(
 
                 SectionHeader("Live Preview")
                 MaterialStylesShowcase(state = state, viewModel = materialStylesViewModel)
+            }
+            spec.id == "animation-custom-styles-2" -> {
+                val vm: AnimationStyles2ViewModel = hiltViewModel()
+                val state by vm.state.collectAsState()
+                SectionHeader("Live Preview")
+                AnimationStyles2Showcase(state = state, viewModel = vm)
+            }
+            spec.id == "image-custom-styles-2" -> {
+                val vm: ImageStyles2ViewModel = hiltViewModel()
+                val state by vm.state.collectAsState()
+                SectionHeader("Live Preview")
+                ImageStyles2Showcase(state = state, viewModel = vm)
+            }
+            spec.id == "layout-custom-styles-2" -> {
+                val vm: LayoutStyles2ViewModel = hiltViewModel()
+                val state by vm.state.collectAsState()
+                SectionHeader("Live Preview")
+                LayoutStyles2Showcase(state = state, viewModel = vm)
+            }
+            spec.id == "material-custom-styles-2" -> {
+                val vm: MaterialStyles2ViewModel = hiltViewModel()
+                val state by vm.state.collectAsState()
+                SectionHeader("Live Preview")
+                MaterialStyles2Showcase(state = state, viewModel = vm)
+            }
+            spec.id == "menu-custom-styles-2" -> {
+                val vm: MenuStyles2ViewModel = hiltViewModel()
+                val state by vm.state.collectAsState()
+                SectionHeader("Live Preview")
+                MenuStyles2Showcase(state = state, viewModel = vm)
             }
             GenericLivePreviewRegistry.previews.containsKey(spec.id) -> {
                 // Self-contained preview composables (own local state) for categories

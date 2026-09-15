@@ -169,5 +169,60 @@ object AnimationComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(animatedVisibility, animateFloatAsState, animationCustomStyles)
+
+    private val animationCustomStyles2 = ComponentSpec(
+        id = "animation-custom-styles-2",
+        category = ComponentCategory.ANIMATIONS,
+        title = "Custom Animation Styles II",
+        overview = "A second set of five animation techniques distinct from the first batch: a " +
+            "morphing shape that tweens corner radius from circle to rounded square, a physics-based " +
+            "bounce-drop using a low-stiffness spring, a page-curl-style flip transition between two " +
+            "cards, an animated route/path drawn progressively on a Canvas via PathMeasure, and " +
+            "elastic spring-driven list-item insertion.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                val cornerPercent by animateFloatAsState(
+                    targetValue = if (isSquare) 0.16f else 0.5f,
+                    animationSpec = tween(500, easing = LinearOutSlowInEasing)
+                )
+                Box(
+                    Modifier.size(80.dp)
+                        .clip(RoundedCornerShape(percent = (cornerPercent * 100).toInt()))
+                        .background(color)
+                )
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("cornerPercent", "State<Float> via animateFloatAsState", "n/a", "Drives the morphing shape's corner radius percent between fully round and rounded-square."),
+            ComponentProperty("spring(dampingRatio, stiffness)", "AnimationSpec<Dp>", "n/a", "Low-stiffness spring used for the bounce-drop ball to simulate gravity + settle."),
+            ComponentProperty("PathMeasure", "class", "n/a", "Measures a Canvas Path so a sub-segment can be drawn to animate route/path reveal."),
+            ComponentProperty("pageIndex", "Int", "required", "Toggles which of two cards is shown, driving the 180-degree flip rotation animation.")
+        ),
+        events = listOf("onToggle / onDrop / onNext / onInsert / onReset — hoisted callbacks driving each demo's transient state changes."),
+        bestPractices = listOf(
+            "Use `spring()` instead of `tween()` for physical motion (bounce, elastic insertion) — it reads as far more natural than an eased duration curve.",
+            "Cache and reuse a `Path`/`PathMeasure` instance across recompositions for animated path drawing rather than allocating a new one every frame.",
+            "Prefer `RoundedCornerShape(percent = ...)` over a fixed Dp radius when morphing between a circle and a square so the shape scales correctly at any size."
+        ),
+        commonMistakes = listOf(
+            "Animating layout-affecting properties (width/height) instead of `graphicsLayer` transforms, causing unnecessary relayout on every frame.",
+            "Forgetting to reset an inserted list item's entrance `Animatable`/animateFloatAsState state, causing later insertions to skip their entrance animation.",
+            "Using a single shared rotation value for a flip transition without keying it to the page index, causing stale animations after rapid taps."
+        ),
+        accessibilityNotes = listOf(
+            "Purely decorative shape-morphing and path-drawing carry no semantic meaning on their own — pair with a text label describing the resulting state.",
+            "Respect reduced-motion settings: physics-heavy bounce and elastic insertion should shorten or skip their animation when the system disables motion."
+        ),
+        performanceNotes = listOf(
+            "Drive Canvas path drawing from an animated Float progress rather than re-measuring the path each frame.",
+            "Spring animations with low stiffness run longer than a fixed tween — avoid stacking many simultaneous low-stiffness springs in a scrolling list."
+        ),
+        relatedComponentIds = listOf("animation-custom-styles"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(animatedVisibility, animateFloatAsState, animationCustomStyles, animationCustomStyles2)
 }

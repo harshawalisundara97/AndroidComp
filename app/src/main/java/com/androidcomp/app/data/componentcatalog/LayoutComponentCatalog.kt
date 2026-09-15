@@ -200,5 +200,69 @@ object LayoutComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(weightedRow, boxStack, layoutCustomStyles)
+    private val layoutCustomStyles2 = ComponentSpec(
+        id = "layout-custom-styles-2",
+        category = ComponentCategory.LAYOUTS,
+        title = "Custom Layout Patterns II",
+        overview = "A second set of five layout interactions distinct from the first batch — a " +
+            "drag-to-reorder list controlled by up/down affordances, a pinned two-pane " +
+            "master-detail layout, a parallax scrolling header that shrinks and fades on " +
+            "scroll, a tabbed content switcher with a directional slide transition, and an " +
+            "adaptive card-flow layout built on FlowRow. Each responds to real interaction " +
+            "and its Compose code is copyable below.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun ParallaxScrollingHeader() {
+                    val scrollState = rememberScrollState()
+                    val progress = scrollState.value.toFloat() / scrollState.maxValue
+
+                    Column(Modifier.verticalScroll(scrollState)) {
+                        Box(
+                            Modifier.graphicsLayer {
+                                alpha = 1f - progress * 0.7f
+                                scaleX = 1f - progress * 0.15f
+                                scaleY = 1f - progress * 0.15f
+                            }
+                        ) { Text("Header") }
+                        // scrollable content below...
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("reorderItems / onMove(from, to)", "List<String> / (Int, Int) -> Unit", "n/a", "Backing list and mutation callback for the drag-to-reorder grid's up/down controls."),
+            ComponentProperty("masterSelectedIndex", "Int", "0", "Which master-list row is currently shown in the pinned detail pane."),
+            ComponentProperty("rememberScrollState().value / .maxValue", "Int", "n/a", "Derives the parallax header's live shrink/fade progress from 0f to 1f."),
+            ComponentProperty("FlowRow", "androidx.compose.foundation.layout.FlowRow", "n/a", "Wraps card children onto new lines automatically to fill available width.")
+        ),
+        events = listOf("onMove / onSelect / onSelect(tab) / onAdd/onRemove — fired by each design's controls to update its hoisted state."),
+        bestPractices = listOf(
+            "Prefer explicit move controls (or a well-tested drag library) over hand-rolled pointerInput dragging for reorderable lists — it's far easier to get accessible and correct.",
+            "Derive parallax progress from real scroll state rather than a manually tracked offset, so it always matches what's on screen.",
+            "Use AnimatedContent's directional slideIn/slideOut pair for tab switches so back-and-forth navigation reads as spatially consistent."
+        ),
+        commonMistakes = listOf(
+            "Computing scroll progress by dividing by a maxValue that can be zero (no scrollable overflow), causing a divide-by-zero/NaN alpha.",
+            "Forgetting @OptIn(ExperimentalLayoutApi::class) is no longer required for stable FlowRow, but still using the old accompanist FlowRow leftover in new code.",
+            "Letting the master-detail pane's detail content lag one click behind because selection state lives locally instead of being hoisted."
+        ),
+        accessibilityNotes = listOf(
+            "Reorder up/down buttons must have adequate touch targets (48x48dp) and content descriptions like 'Move Alpha up'.",
+            "Master-detail layouts should still expose a single logical reading order to TalkBack, not two disconnected panes.",
+            "Tab switcher content changes should be announced so screen reader users know new content loaded after a tab tap."
+        ),
+        performanceNotes = listOf(
+            "FlowRow measures children in a single pass and is cheap even as card count grows into the dozens; a LazyVerticalGrid is still preferable for large counts.",
+            "Parallax header effects should stay on graphicsLayer properties (alpha/scale) driven by scroll state, never trigger a re-measure per scroll delta.",
+            "AnimatedContent disposes the outgoing tab's composition after its exit animation completes — avoid holding heavy state in it that needs to survive."
+        ),
+        relatedComponentIds = listOf("layout-custom-styles"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(weightedRow, boxStack, layoutCustomStyles, layoutCustomStyles2)
 }

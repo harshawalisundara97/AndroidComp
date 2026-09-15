@@ -215,5 +215,73 @@ object MenuComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(dropdownMenu, exposedDropdown, menuCustomStyles)
+    private val menuCustomStyles2 = ComponentSpec(
+        id = "menu-custom-styles-2",
+        category = ComponentCategory.MENUS,
+        title = "Custom Menu Styles II",
+        overview = "Five more custom-designed menu patterns distinct from the first batch — a " +
+            "searchable dropdown for jumping to a destination by typing, an icon-grid quick-actions " +
+            "menu, a cascading breadcrumb menu that drills into nested categories, a toolbar overflow " +
+            "menu carrying a clearable notification badge, and a horizontally swipeable carousel of " +
+            "sort options acting as a lightweight menu. Tap each one below to see it in action, and " +
+            "copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun ToolbarOverflowBadgeMenu(count: Int, onClear: () -> Unit) {
+                    var expanded by remember { mutableStateOf(false) }
+                    BadgedBox(badge = { if (count > 0) Badge { Text(count.toString()) } }) {
+                        IconButton(onClick = { expanded = true }) {
+                            Icon(Icons.Outlined.MoreVert, contentDescription = "Overflow menu")
+                        }
+                    }
+                    if (expanded) {
+                        Card {
+                            Row(Modifier.clickable { onClear(); expanded = false }) {
+                                Text("Clear notifications")
+                            }
+                        }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("query", "String", "\"\"", "Current text typed into the searchable dropdown's filter field."),
+            ComponentProperty("path", "List<String>", "listOf(\"Home\")", "Breadcrumb stack for the cascading menu; tapping a segment truncates back to it."),
+            ComponentProperty("badgeCount", "Int", "0", "Notification count shown on the toolbar overflow menu's badge; clears to 0 on action."),
+            ComponentProperty("selectedIndex", "Int", "0", "Currently highlighted option in the swipeable carousel picker menu.")
+        ),
+        events = listOf("onQueryChange / onPush / onPopTo / onClear / onSelect — fired by each design's respective interaction."),
+        bestPractices = listOf(
+            "Debounce or simply filter in-memory (as shown) for searchable menus with small option counts; move to a real search API for large datasets.",
+            "Keep icon-grid quick-actions to at most 6 items so they fit two or three rows without scrolling.",
+            "Clear a toolbar badge's count as soon as its action is acknowledged so it doesn't feel stuck.",
+            "Use animateContentSize() on cascading breadcrumb containers so height changes between levels animate smoothly."
+        ),
+        commonMistakes = listOf(
+            "Forgetting to reset the search query when the menu closes, so it reopens pre-filtered unexpectedly.",
+            "Letting a breadcrumb path grow unbounded without a way to jump back multiple levels at once.",
+            "Using a LazyRow carousel menu without a visual selected-state indicator, leaving users unsure what's active.",
+            "Not disabling the badge-clearing action when the count is already zero."
+        ),
+        accessibilityNotes = listOf(
+            "The searchable dropdown's text field needs a descriptive placeholder or label so TalkBack announces its purpose before typing.",
+            "Icon-grid quick action icons must pair with visible text labels, not rely on icon shape alone for meaning.",
+            "Badge counts should be included in the overflow button's contentDescription (e.g. 'More options, 3 unread') for screen readers.",
+            "Breadcrumb segments need at least 48dp touch targets even though their text may be visually small."
+        ),
+        performanceNotes = listOf(
+            "Filtering an in-memory list on every keystroke is cheap for small option sets; derive the filtered list with `remember(query)` to avoid recomputation on unrelated recompositions.",
+            "The breadcrumb menu's option map is static and defined once outside recomposition scope where possible.",
+            "LazyRow in the carousel menu only composes visible items, so it scales to many sort options cheaply.",
+            "Badge state changes should update only the badge count field via `copy()`, not replace the entire showcase state object unnecessarily."
+        ),
+        relatedComponentIds = listOf("menu-custom-styles"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(dropdownMenu, exposedDropdown, menuCustomStyles, menuCustomStyles2)
 }

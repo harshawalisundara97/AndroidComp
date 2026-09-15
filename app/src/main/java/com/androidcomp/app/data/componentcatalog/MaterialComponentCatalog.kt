@@ -315,5 +315,84 @@ object MaterialComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(card, chip, badge, cardStyles, customStyles)
+    private val customStyles2 = ComponentSpec(
+        id = "material-custom-styles-2",
+        category = ComponentCategory.MATERIAL_COMPONENTS,
+        title = "Custom Material Component Styles II",
+        overview = "A second batch of five custom Material Components, distinct from the first " +
+            "set and from the Card showcase — a DatePicker-styled calendar month grid with an " +
+            "animated selection circle, a TimePicker-styled analog clock dial whose hand rotates " +
+            "to the tapped hour, a vertical NavigationRail with a pill indicator that slides " +
+            "between destinations, a Snackbar with an action that can also be swiped away with " +
+            "a fading offset, and an ExposedDropdownMenu-style select field whose chevron " +
+            "rotates as its option list expands. Tap, drag, or swipe each demo to see it " +
+            "respond, and copy its Compose code to reuse directly.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun AnimatedDropdownSelect(
+                    expanded: Boolean,
+                    selected: String,
+                    onToggle: () -> Unit,
+                    onSelectOption: (String) -> Unit
+                ) {
+                    val chevronRotation by animateFloatAsState(if (expanded) 180f else 0f)
+                    Row(Modifier.clickable { onToggle() }) {
+                        Text(selected)
+                        Icon(
+                            Icons.Outlined.ExpandMore,
+                            contentDescription = null,
+                            modifier = Modifier.rotate(chevronRotation)
+                        )
+                    }
+                    AnimatedVisibility(visible = expanded) {
+                        Column {
+                            options.forEach { option ->
+                                Row(Modifier.clickable { onSelectOption(option) }) { Text(option) }
+                            }
+                        }
+                    }
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("selectedDate / selectedHour", "Int", "required", "Hoisted selection driving the calendar grid's highlighted day and the clock dial's hand angle."),
+            ComponentProperty("selectedRailIndex", "Int", "0", "Index of the active NavigationRail destination; drives the animated pill offset."),
+            ComponentProperty("snackbarVisible", "Boolean", "false", "Controls the AnimatedVisibility wrapping the swipe-to-dismiss Snackbar."),
+            ComponentProperty("expanded / selectedOption", "Boolean / String", "false / required", "Drives the dropdown's chevron rotation and its expand/collapse of the option list."),
+            ComponentProperty("onSelectDate / onSelectHour / onSelect / onDismiss / onToggle / onSelectOption", "lambdas", "required", "Callbacks that update the hoisted ViewModel state for each of the 5 designs.")
+        ),
+        events = listOf("onSelectDate / onSelectHour (calendar, clock), onSelect (nav rail), onShow/onDismiss (snackbar), onToggle/onSelectOption (dropdown) — fired on tap, drag-release, or swipe."),
+        bestPractices = listOf(
+            "Drive the clock hand and nav-rail pill with animateFloatAsState/animateDpAsState rather than snapping, so repeated taps feel continuous rather than jumpy.",
+            "Use an Animatable (not just animate*AsState) for the swipeable Snackbar so mid-gesture drag offsets and the post-release snap-back/dismiss share one coherent animation state.",
+            "Keep the calendar grid's per-day recomposition cheap — only the selected/unselected two cells actually change color, so avoid recomposing the whole grid on selection.",
+            "Rotate the dropdown chevron with a plain rotate() Modifier driven by animateFloatAsState instead of swapping icons, so the transition reads as one continuous motion."
+        ),
+        commonMistakes = listOf(
+            "Computing the clock dial's hour-label positions with raw pixel math instead of Dp-aware trigonometry, causing misaligned labels on different screen densities.",
+            "Forgetting to coerce the Snackbar's drag offset/alpha, letting it fully disappear without ever calling onDismiss or getting stuck semi-transparent.",
+            "Leaving the dropdown's option list attached to the composition tree (visibility=false via a boolean flag) instead of using AnimatedVisibility, losing the expand/collapse animation.",
+            "Not resetting the NavigationRail's indicator position when the destination list changes length, leaving the pill offset pointing at a stale index."
+        ),
+        accessibilityNotes = listOf(
+            "The calendar grid's day cells and the clock dial's hour targets must each be at least 48dp of touch target even where the visible circle is smaller.",
+            "A swipe-to-dismiss Snackbar must also be dismissible without a gesture — always keep a tappable close/UNDO action alongside the swipe.",
+            "NavigationRail items should expose their selected state via Compose's selected semantics so TalkBack announces which destination is active.",
+            "The dropdown's expanded/collapsed state should be exposed via appropriate semantics (e.g. expanded property) so screen readers announce it as one control, not a button plus a hidden list."
+        ),
+        performanceNotes = listOf(
+            "The clock dial's Canvas redraws only its hand's angle-dependent geometry each frame; keep the static track/hour-label layer out of the per-frame draw scope where possible.",
+            "Prefer Animatable.snapTo during an active drag (not animateTo) to avoid stacking animation jobs on every pointer move in the swipeable Snackbar.",
+            "animateDpAsState on the NavigationRail's indicator is cheap for 4-5 destinations; for a much longer rail, prefer a LazyColumn-friendly approach.",
+            "AnimatedVisibility on the dropdown's option list only composes those rows while expanded, so collapsed state has near-zero layout cost."
+        ),
+        relatedComponentIds = listOf("material-custom-styles", "material-card-styles"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(card, chip, badge, cardStyles, customStyles, customStyles2)
 }

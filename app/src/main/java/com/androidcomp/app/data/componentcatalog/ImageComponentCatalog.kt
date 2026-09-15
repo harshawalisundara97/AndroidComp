@@ -181,5 +181,67 @@ object ImageComponentCatalog {
         minApi = 21
     )
 
-    val all: List<ComponentSpec> = listOf(localImage, asyncImage, imageCustomStyles)
+    private val imageCustomStyles2 = ComponentSpec(
+        id = "image-custom-styles-2",
+        category = ComponentCategory.IMAGES,
+        title = "Custom Image Styles II",
+        overview = "A second set of five image UI patterns distinct from the first batch — a " +
+            "continuous Ken Burns zoom-pan loop, a color-filter picker that cycles tint " +
+            "overlays, a masonry thumbnail grid with tap-to-expand tiles, an image carousel " +
+            "with animated page-indicator dots, and a blurred-placeholder-to-sharp loading " +
+            "transition. Interact with each below and copy its Compose code.",
+        composeCode = CodeSample(
+            language = CodeLanguage.COMPOSE,
+            code = """
+                @Composable
+                fun KenBurnsImage(playing: Boolean) {
+                    val transition = rememberInfiniteTransition()
+                    val scale by transition.animateFloat(
+                        initialValue = 1f,
+                        targetValue = 1.18f,
+                        animationSpec = infiniteRepeatable(tween(6000), RepeatMode.Reverse)
+                    )
+                    Box(
+                        Modifier.graphicsLayer {
+                            scaleX = if (playing) scale else 1f
+                            scaleY = if (playing) scale else 1f
+                        }.background(image)
+                    )
+                }
+            """.trimIndent()
+        ),
+        xmlCode = null,
+        viewModelUsage = null,
+        properties = listOf(
+            ComponentProperty("rememberInfiniteTransition().animateFloat", "State<Float>", "n/a", "Drives the Ken Burns scale/translate loop and the carousel dot-width animation."),
+            ComponentProperty("filterIndex", "Int", "0", "Selects which tint overlay (Original/Grayscale/Warm/Cool) is composited over the image."),
+            ComponentProperty("expandedThumbnail", "Int?", "null", "Which masonry tile, if any, is expanded to its enlarged height."),
+            ComponentProperty("Modifier.blur(radius)", "Dp", "0.dp", "Animated from a heavy placeholder blur down to zero once content is 'loaded'.")
+        ),
+        events = listOf("onToggle / onNext / onExpand / onPageChange — fired by each design's controls to drive its animated state."),
+        bestPractices = listOf(
+            "Pause continuous loops like Ken Burns and the shimmer-style effects when their content scrolls off-screen to save battery.",
+            "Animate blur radius and scale via animateFloatAsState/graphicsLayer rather than jump-cutting, so loading transitions read as intentional.",
+            "Keep masonry tile aspect ratios stable when collapsed so the grid doesn't reflow unexpectedly while a sibling tile is expanded."
+        ),
+        commonMistakes = listOf(
+            "Running the Ken Burns infinite transition even when the composable is not visible, wasting compositor work.",
+            "Forgetting to coerce carousel page index with modulo, causing an out-of-bounds crash when cycling past the last image.",
+            "Applying Modifier.blur without constraining the box's size first, causing an expensive full-bleed blur pass."
+        ),
+        accessibilityNotes = listOf(
+            "Carousel page dots need a text alternative (e.g. 'Image 2 of 3') since dot color/size alone doesn't convey position to screen readers.",
+            "The masonry expand/collapse action should be reachable via a standard click target, not gesture-only, for switch-access users.",
+            "Filter picker should announce the active filter name so non-visual users know which preset is selected."
+        ),
+        performanceNotes = listOf(
+            "rememberInfiniteTransition keeps recomposing/redrawing forever while composed — scope it to only the visible Ken Burns/carousel instance.",
+            "Prefer graphicsLayer transforms (scale/translation) over changing layout-affecting modifiers for the zoom-pan effect to skip re-measure.",
+            "Modifier.blur is comparatively expensive; animate it only during the brief load transition, not as a permanent effect."
+        ),
+        relatedComponentIds = listOf("image-custom-styles"),
+        minApi = 21
+    )
+
+    val all: List<ComponentSpec> = listOf(localImage, asyncImage, imageCustomStyles, imageCustomStyles2)
 }
